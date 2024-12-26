@@ -2,8 +2,11 @@
 #include <pico/time.h>
 
 
+MAX31865::MAX31865(SPIDevice* spi_device) : m_spidevice(spi_device) {
+}
+
 bool MAX31865::init(const max31865_wire_num_e wires, const max31865_filter_fq_e fq) {
-    //spi.begin()
+    m_spidevice->init();
 
     setWires(wires);
     enableBias(false);
@@ -93,13 +96,17 @@ uint16_t MAX31865::readRTD() {
     return rtd;
 }
 
-
-
-uint8_t MAX31865::readRegisterByte(const uint8_t addr) {
-    // TODO
+uint8_t MAX31865::readRegisterByte(uint8_t addr) {
+    // MSB (A7) is reset (=0) to indicate read operation
+    addr &= ~(1<<7);
+    return m_spidevice->writeThenReadByte(addr);
 }
 
-void MAX31865::writeRegisterByte(uint8_t addr, uint8_t reg) {
-    // TODO
+void MAX31865::writeRegisterByte(uint8_t addr, const uint8_t data) {
+    // MSB (A7) is set (=1) to indicate write operation
+    addr |= (1<<7);
+    // Make write buffer to transfer 2 bytes - addr and data
+    const uint8_t buff[2] = {addr, data};
+    m_spidevice->writeBytes(buff, 2);
 }
 

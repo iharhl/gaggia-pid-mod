@@ -18,6 +18,7 @@ add_executable(main
         src/main.cpp
         src/pid.cpp
         src/max31865.cpp
+        src/spi.cpp
 )
 
  pico_enable_stdio_usb(main 1)

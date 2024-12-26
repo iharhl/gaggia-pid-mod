@@ -2,6 +2,7 @@
 #define MAX31865_H
 
 #include <cstdint>
+#include "spi.h"
 
 #define MAX31865_CONFIG_REG 0x00
 #define MAX31865_CONFIG_BIAS (1<<7)
@@ -45,7 +46,7 @@ typedef enum max31865_filter_fq {
 
 class MAX31865 {
 public:
-    MAX31865();
+    explicit MAX31865(SPIDevice* spi_device);
     ~MAX31865() = default;
 
     bool init(max31865_wire_num_e, max31865_filter_fq_e);
@@ -63,8 +64,10 @@ public:
     void setThresholds(uint16_t lower, uint16_t upper);
 
 private:
+    SPIDevice* m_spidevice;
+
     uint8_t readRegisterByte(uint8_t addr);
-    void writeRegisterByte(uint8_t addr, uint8_t reg);
+    void writeRegisterByte(uint8_t addr, uint8_t data);
 };
 
 
