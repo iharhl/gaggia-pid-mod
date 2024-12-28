@@ -1,4 +1,6 @@
 #include "max31865.h"
+
+#include <cmath>
 #include <pico/time.h>
 
 
@@ -52,7 +54,7 @@ void MAX31865::convertModeSelect(const max31865_convert_mode_e mode) {
 
 void MAX31865::filterSelect(const max31865_filter_fq_e fq) {
     uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
-    if (fq == MAX31865_50HZ) {
+    if (fq) {
         reg |= MAX31865_CONFIG_FILT;
     } else {
         reg &= ~MAX31865_CONFIG_FILT;
@@ -98,6 +100,13 @@ uint8_t MAX31865::readFault(const max31865_fault_cycle_e fault_cycle) {
     return readRegisterByte(MAX31865_FAULTSTAT_REG);
 }
 
+void MAX31865::configureRTD(const float RTDnominal, const float refResistor) {
+    // The 'nominal' resistance of the RTD sensor, usually 100 or 1000
+    m_R0 = RTDnominal;
+    // The value of the matching reference resistor, usually 430 or 4300
+    m_Rref = refResistor;
+}
+
 uint16_t MAX31865::readRTD() {
     clearFault();
     enableBias(true);
@@ -119,6 +128,64 @@ uint16_t MAX31865::readRTD() {
     rtd >>= 1;
 
     return rtd;
+}
+
+float MAX31865::readTemperature(const temp_calc_e calcType) {
+    const uint16_t rtd = readRTD();
+    if (calcType) {
+        return calculateTempPrecise(rtd);
+    }
+    return calculateTempRough(rtd);
+}
+
+float MAX31865::calculateTempPrecise(const uint16_t RTDraw) {
+    // The resistance vs. temperature curve is reasonably linear, but has some curvature.
+    // Using Callendar-Van Dusen equation, we can describe that curvature.
+
+    // Check https://www.analog.com/media/en/technical-documentation/application-notes/AN709_0.pdf
+    // for details.
+
+    // A platinum RTD’s transfer function is described by two distinct polynomial equations:
+    // one for temperatures below 0degC and another for temperatures above 0degC.
+    //
+    // These equations are:
+    //      R_RTD(t) = R0 * [ 1 + A*t + B*t^2 + C*(t–100)*t^3 ]     (for t <= 0degC)
+    //      R_RTD(t) = R0 * [ 1 + A*t + B*t^2 ]                     (for t >= 0degC)
+    //
+    // In the code below, these are represented as:
+    //      t          ->   temp
+    //      R_RTD      ->   R
+    //      R0         ->   m_R0
+    //      A          ->   RTD_A
+    //      B          ->   RTD_B
+
+    // As per datasheet, in order to convert ADC raw value to RTD resistance,
+    // the following equation is used:
+    // R_RTD = (ADCraw * R_REF) / 2^15
+
+    const float R = RTDraw * m_Rref / (1<<15);
+
+    constexpr float Z1 = -RTD_A;
+    constexpr float Z2 = RTD_A * RTD_A - (4 * RTD_B);
+    const float Z3 = (4 * RTD_B) / m_R0;
+    constexpr float Z4 = 2 * RTD_B;
+
+    const float temp = (std::sqrt(Z2 + Z3 * R) + Z1) / Z4;
+
+    // The caculation for <0degC is slightly different but as it is not expected
+    // for temp to drop this low, the calculation was removed.
+    if (temp <= 0) {
+        // TODO: error/not supported
+    }
+
+    return temp;
+}
+
+float MAX31865::calculateTempRough(const uint16_t RTDraw) {
+    // Straight line approximation is good enough for temp -100 to 100 degC.
+    // Equation gives 0degC error at 0degC, -1.75degC error at -100degC,
+    // and -1.4degC error at +100degC.
+    return RTDraw / 32 - 256;
 }
 
 uint8_t MAX31865::readRegisterByte(uint8_t addr) {

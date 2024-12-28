@@ -20,6 +20,11 @@
 #define MAX31865_LFAULTLSB_REG 0x06
 #define MAX31865_FAULTSTAT_REG 0x07
 
+// Polynomial coefficients as shown in
+// https://www.analog.com/media/en/technical-documentation/application-notes/AN709_0.pdf
+#define RTD_A 3.9083e-3
+#define RTD_B -5.775e-7
+
 // #define MAX31865_FAULT_HIGHTHRESH 0x80
 // #define MAX31865_FAULT_LOWTHRESH 0x40
 // #define MAX31865_FAULT_REFINLOW 0x20
@@ -39,16 +44,21 @@ typedef enum max31865_wire_num {
 } max31865_wire_num_e;
 
 typedef enum max31865_filter_fq {
-    MAX31865_60HZ = 0,
-    MAX31865_50HZ,
+    MAX31865_FILT_60HZ = 0,
+    MAX31865_FILT_50HZ,
 } max31865_filter_fq_e;
 
-typedef enum {
+typedef enum max31865_fault_cycle {
     MAX31865_FAULT_NONE = 0,
     MAX31865_FAULT_AUTO,
     MAX31865_FAULT_MANUAL_RUN,
     MAX31865_FAULT_MANUAL_FINISH
-  } max31865_fault_cycle_e;
+} max31865_fault_cycle_e;
+
+typedef enum temp_calc {
+    TEMP_CALC_ROUGH = 0,
+    TEMP_CALC_PRECISE,
+} temp_calc_e;
 
 
 class MAX31865 {
@@ -58,11 +68,11 @@ public:
 
     void init();
 
+    void configureRTD(float RTDnominal, float refResistor);
     uint16_t readRTD();
     void clearFault();
     uint8_t readFault(max31865_fault_cycle_e fault_cycle = MAX31865_FAULT_AUTO);
-    float getTemperature(float RTDnominal, float refResistor);
-    float calculateTemperature(uint16_t RTDraw, float RTDnominal, float refResistor);
+    float readTemperature(temp_calc_e calcType);
 
     void setWires(max31865_wire_num_e wires);
     void enableBias(bool b);
@@ -72,6 +82,12 @@ public:
 
 private:
     SPIDevice* m_spidevice;
+
+    float m_R0 = 100; // be default 100 Ohm
+    float m_Rref = 430; // be default 430 Ohm
+
+    float calculateTempPrecise(uint16_t RTDraw);
+    float calculateTempRough(uint16_t RTDraw);
 
     uint8_t readRegisterByte(uint8_t addr);
     void writeRegisterByte(uint8_t addr, uint8_t data);

@@ -21,8 +21,25 @@ void LED::turnOff() {
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
 }
 
-void LED::blink(const unsigned delay) {
+void LED::blinkOnce(const unsigned delay) {
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, true);
     sleep_ms(delay);
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
+}
+
+void LED::blinkForDuration(const unsigned delay, const unsigned duration) {
+    const unsigned cycles = duration / delay; // calc the number of blink cycles
+    for (int i = 0; i < cycles; ++i) {
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, true);
+        sleep_ms(delay);
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
+    }
+}
+
+void LED::blinkForCycles(const unsigned delay, const unsigned cycles) {
+    for (int i = 0; i < cycles; ++i) {
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, true);
+        sleep_ms(delay);
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
+    }
 }

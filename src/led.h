@@ -9,7 +9,9 @@ public:
     static bool init();
     static void turnOn();
     static void turnOff();
-    static void blink(unsigned delay);
+    static void blinkOnce(unsigned delay);
+    static void blinkForDuration(unsigned delay, unsigned duration);
+    static void blinkForCycles(unsigned delay, unsigned cycles);
 };
 
 

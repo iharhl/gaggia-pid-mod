@@ -41,9 +41,9 @@ void SPIDevice::init() {
 
 
 uint8_t SPIDevice::readByte() const {
-    uint8_t buff[1]; // 1 byte buffer
-    spi_read_blocking(m_spi, 0, buff, 1);
-    return buff[0];
+    uint8_t buff; // 1 byte buffer
+    spi_read_blocking(m_spi, 0, &buff, 1);
+    return buff;
 }
 
 void SPIDevice::readBytes(uint8_t* buff, const unsigned len) {
