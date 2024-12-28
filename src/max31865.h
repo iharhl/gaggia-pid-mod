@@ -18,7 +18,7 @@
 #define MAX31865_HFAULTLSB_REG 0x04
 #define MAX31865_LFAULTMSB_REG 0x05
 #define MAX31865_LFAULTLSB_REG 0x06
-// #define MAX31865_FAULTSTAT_REG 0x07
+#define MAX31865_FAULTSTAT_REG 0x07
 
 // #define MAX31865_FAULT_HIGHTHRESH 0x80
 // #define MAX31865_FAULT_LOWTHRESH 0x40
@@ -43,17 +43,24 @@ typedef enum max31865_filter_fq {
     MAX31865_50HZ,
 } max31865_filter_fq_e;
 
+typedef enum {
+    MAX31865_FAULT_NONE = 0,
+    MAX31865_FAULT_AUTO,
+    MAX31865_FAULT_MANUAL_RUN,
+    MAX31865_FAULT_MANUAL_FINISH
+  } max31865_fault_cycle_e;
+
 
 class MAX31865 {
 public:
-    explicit MAX31865(SPIDevice* spi_device);
+    explicit MAX31865(SPIDevice* spi_device, max31865_wire_num_e wires, max31865_filter_fq_e fq);
     ~MAX31865() = default;
 
-    bool init(max31865_wire_num_e, max31865_filter_fq_e);
+    void init();
 
     uint16_t readRTD();
     void clearFault();
-    // uint8_t readFault(max31865_fault_cycle_t fault_cycle = MAX31865_FAULT_AUTO);
+    uint8_t readFault(max31865_fault_cycle_e fault_cycle = MAX31865_FAULT_AUTO);
     float getTemperature(float RTDnominal, float refResistor);
     float calculateTemperature(uint16_t RTDraw, float RTDnominal, float refResistor);
 

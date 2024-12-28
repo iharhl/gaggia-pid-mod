@@ -2,20 +2,21 @@
 #include <pico/time.h>
 
 
-MAX31865::MAX31865(SPIDevice* spi_device) : m_spidevice(spi_device) {
-}
-
-bool MAX31865::init(const max31865_wire_num_e wires, const max31865_filter_fq_e fq) {
-    m_spidevice->init();
-
+MAX31865::MAX31865(SPIDevice* spi_device,
+    const max31865_wire_num_e wires,
+    const max31865_filter_fq_e fq) : m_spidevice(spi_device)
+{
     setWires(wires);
-    enableBias(false);
-    convertModeSelect(MAX31865_MODE_NORM_OFF);
     filterSelect(fq);
     setThresholds(0, 0xFFFF);
-    clearFault();
+}
 
-    return true;
+/* Initialize (or reset) MAX31865 driver instance */
+void MAX31865::init() {
+    m_spidevice->init();
+    enableBias(false);
+    convertModeSelect(MAX31865_MODE_NORM_OFF);
+    clearFault();
 }
 
 void MAX31865::setWires(const max31865_wire_num_e wires) {
@@ -71,6 +72,30 @@ void MAX31865::clearFault() {
     reg &= ~0b00101100; // write 0 to D5,D3,D2
     reg |= MAX31865_CONFIG_FAULTSTAT; // write 1 to D1
     writeRegisterByte(MAX31865_CONFIG_REG, reg);
+}
+
+uint8_t MAX31865::readFault(const max31865_fault_cycle_e fault_cycle) {
+    if (fault_cycle) {
+        // Reset config register except wire and filter bits
+        uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
+        reg &= 0b00010001;
+        //
+        switch (fault_cycle) {
+            case MAX31865_FAULT_AUTO:
+                writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10000100));
+                sleep_ms(1);
+                break;
+            case MAX31865_FAULT_MANUAL_RUN:
+                writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10001000));
+                return 0;
+            case MAX31865_FAULT_MANUAL_FINISH:
+                writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10001100));
+                return 0;
+            default:
+                break;
+        }
+    }
+    return readRegisterByte(MAX31865_FAULTSTAT_REG);
 }
 
 uint16_t MAX31865::readRTD() {
