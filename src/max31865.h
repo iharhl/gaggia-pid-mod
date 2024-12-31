@@ -66,12 +66,12 @@ public:
     explicit MAX31865(SPIDevice* spi_device, max31865_wire_num_e wires, max31865_filter_fq_e fq);
     ~MAX31865() = default;
 
-    void init();
+    void reset();
 
     void configureRTD(float RTDnominal, float refResistor);
-    uint16_t readRTD();
+    [[nodiscard]] uint16_t readRTD();
     void clearFault();
-    uint8_t readFault(max31865_fault_cycle_e fault_cycle = MAX31865_FAULT_AUTO);
+    [[nodiscard]] uint8_t readFault(max31865_fault_cycle_e fault_cycle = MAX31865_FAULT_AUTO);
     float readTemperature(temp_calc_e calcType);
 
     void setWires(max31865_wire_num_e wires);
@@ -84,12 +84,13 @@ private:
     SPIDevice* m_spidevice;
 
     float m_R0 = 100; // be default 100 Ohm
-    float m_Rref = 430; // be default 430 Ohm
+    float m_Rref = 4300; // todo: be default 430 Ohm
 
     float calculateTempPrecise(uint16_t RTDraw);
     float calculateTempRough(uint16_t RTDraw);
 
     uint8_t readRegisterByte(uint8_t addr);
+    uint16_t readRegisterHWord(uint8_t addr);
     void writeRegisterByte(uint8_t addr, uint8_t data);
 };
 

@@ -3,19 +3,26 @@
 #include <cmath>
 #include <pico/time.h>
 
+// TODO: remove
+#include <cstdio>
+#include <string>
+
 
 MAX31865::MAX31865(SPIDevice* spi_device,
     const max31865_wire_num_e wires,
     const max31865_filter_fq_e fq) : m_spidevice(spi_device)
 {
     setWires(wires);
+    enableBias(false);
+    convertModeSelect(MAX31865_MODE_NORM_OFF);
     filterSelect(fq);
     setThresholds(0, 0xFFFF);
+    clearFault();
 }
 
-/* Initialize (or reset) MAX31865 driver instance */
-void MAX31865::init() {
-    m_spidevice->init();
+/* Reset MAX31865 board and its spi driver */
+void MAX31865::reset() {
+    m_spidevice->reset();
     enableBias(false);
     convertModeSelect(MAX31865_MODE_NORM_OFF);
     clearFault();
@@ -119,9 +126,11 @@ uint16_t MAX31865::readRTD() {
     // Wait till conversion is complete (probably can be reduced to ~55 ms for 50Hz)
     sleep_ms(65);
     // Read most and least significant bits from RTD registers and combine them
+    // todo: implement
     const uint8_t rtd_msb = readRegisterByte(MAX31865_RTDMSB_REG);
     const uint8_t rtd_lsb = readRegisterByte(MAX31865_RTDLSB_REG);
     uint16_t rtd = rtd_lsb + rtd_msb * (1<<8);
+
     // Disable bias current again to reduce selfheating.
     enableBias(false);
     // Remove fault (reset most right bit D0)
@@ -161,7 +170,7 @@ float MAX31865::calculateTempPrecise(const uint16_t RTDraw) {
 
     // As per datasheet, in order to convert ADC raw value to RTD resistance,
     // the following equation is used:
-    // R_RTD = (ADCraw * R_REF) / 2^15
+    //      R_RTD = (ADCraw * R_REF) / 2^15
 
     const float R = RTDraw * m_Rref / (1<<15);
 
@@ -174,7 +183,7 @@ float MAX31865::calculateTempPrecise(const uint16_t RTDraw) {
 
     // The caculation for <0degC is slightly different but as it is not expected
     // for temp to drop this low, the calculation was removed.
-    if (temp <= 0) {
+    if (temp < 0) {
         // TODO: error/not supported
     }
 
@@ -185,13 +194,22 @@ float MAX31865::calculateTempRough(const uint16_t RTDraw) {
     // Straight line approximation is good enough for temp -100 to 100 degC.
     // Equation gives 0degC error at 0degC, -1.75degC error at -100degC,
     // and -1.4degC error at +100degC.
-    return RTDraw / 32 - 256;
+    return RTDraw / 2.958 - 257.76;
+    // todo: temp fix for ref = 4300 instead of 430
+    // return RTDraw / 32 - 256;
 }
 
 uint8_t MAX31865::readRegisterByte(uint8_t addr) {
     // MSB (A7) is reset (=0) to indicate read operation
     addr &= ~(1<<7);
-    return m_spidevice->writeThenReadByte(addr);
+    return m_spidevice->write8ThenRead8(addr);
+}
+
+/* Read half-word (note: arm32 word = 4 bytes) */
+uint16_t MAX31865::readRegisterHWord(uint8_t addr) {
+    // MSB (A7) is reset (=0) to indicate read operation
+    addr &= ~(1<<7);
+    return m_spidevice->write8ThenRead16(addr);
 }
 
 void MAX31865::writeRegisterByte(uint8_t addr, const uint8_t data) {
@@ -199,6 +217,6 @@ void MAX31865::writeRegisterByte(uint8_t addr, const uint8_t data) {
     addr |= (1<<7);
     // Make write buffer to transfer 2 bytes - addr and data
     const uint8_t buff[2] = {addr, data};
-    m_spidevice->writeBytes(buff, 2);
+    m_spidevice->write8(buff, 2);
 }
 
