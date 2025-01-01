@@ -125,12 +125,8 @@ uint16_t MAX31865::readRTD() {
     writeRegisterByte(MAX31865_CONFIG_REG, reg);
     // Wait till conversion is complete (probably can be reduced to ~55 ms for 50Hz)
     sleep_ms(65);
-    // Read most and least significant bits from RTD registers and combine them
-    // todo: implement
-    const uint8_t rtd_msb = readRegisterByte(MAX31865_RTDMSB_REG);
-    const uint8_t rtd_lsb = readRegisterByte(MAX31865_RTDLSB_REG);
-    uint16_t rtd = rtd_lsb + rtd_msb * (1<<8);
-
+    // Read 2 bytes (half-word) from RTD registers
+    uint16_t rtd = readRegisterHWord(MAX31865_RTDMSB_REG);
     // Disable bias current again to reduce selfheating.
     enableBias(false);
     // Remove fault (reset most right bit D0)

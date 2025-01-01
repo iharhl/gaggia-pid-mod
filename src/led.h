@@ -12,6 +12,7 @@ public:
     static void blinkOnce(unsigned delay);
     static void blinkForDuration(unsigned delay, unsigned duration);
     static void blinkForCycles(unsigned delay, unsigned cycles);
+    static void blinkInf(unsigned delay);
 };
 
 

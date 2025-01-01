@@ -47,3 +47,12 @@ void LED::blinkForCycles(const unsigned delay, const unsigned cycles) {
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
     }
 }
+
+void LED::blinkInf(const unsigned delay) {
+    while(true) {
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, true);
+        sleep_ms(delay);
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
+        sleep_ms(delay);
+    }
+}

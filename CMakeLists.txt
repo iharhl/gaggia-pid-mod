@@ -20,6 +20,8 @@ add_executable(main
         src/max31865.cpp
         src/spi.cpp
         src/led.cpp
+        src/pwm.cpp
+        src/time.cpp
 )
 
  pico_enable_stdio_usb(main 1)
@@ -34,7 +36,11 @@ add_executable(main
 #)
 #add_link_options(-Wl,--gc-sections)
 
-target_link_libraries(main pico_stdlib pico_cyw43_arch_none hardware_spi)
+target_link_libraries(main
+        pico_stdlib
+        pico_cyw43_arch_none
+        hardware_spi
+)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(main)

@@ -5,6 +5,8 @@
 #include "led.h"
 #include "max31865.h"
 #include <cstdio>
+#include "pwm.h"
+#include "time.h"
 
 
 #define RELAY_PIN 11
@@ -17,15 +19,6 @@
 template <typename T>
 void print(const char* str, T value) {
   printf("%s: %s\n", str, std::to_string(value).c_str());
-}
-
-static inline uint64_t now_ms() { return time_us_64() / 1000; }
-static inline uint64_t now_min() { return time_us_64() / (1000 * 1000 * 60); }
-
-void configure_output_pin(const uint8_t pin) {
-  gpio_init(pin);
-  gpio_set_dir(pin, GPIO_OUT);
-  gpio_put(pin, false);
 }
 
 // void run_debug_code(MAX31865 temp_sensor) {
@@ -51,19 +44,25 @@ void configure_output_pin(const uint8_t pin) {
 
 int main() {
   stdio_init_all();
-  configure_output_pin(RELAY_PIN);
 
+  // Set up LED on the pico
   LED::init();
   LED::turnOn();
 
+  // Setp up MAX31865 and its SPI driver
   SPIDevice spi_device(5,2,4,3,1000*1000);
   MAX31865 temp_sensor(&spi_device, MAX31865_3WIRE, MAX31865_FILT_50HZ);
 
-  PIDController pid(1, 0, 0, 1);
+  // Set up temperature PID controller
+  PIDController pid(5, 0, 0, 1);
   pid.setOutputLimits(0, 100);  // output is pwm duty cycle [%]
 
-  uint64_t pwm_cycle_start_time = now_ms();
-  uint64_t start_time = now_min();
+  // Set up PWM signal to SSR latch
+  PWMDriver pwm(11, PWM_CYCLE);
+  pwm.setMode(true);
+
+  // Start time of boiler heating
+  uint64_t start_time = Timer::now_min();
 
   while(true) {
     float temp = temp_sensor.readTemperature(TEMP_CALC_PRECISE);
@@ -71,6 +70,7 @@ int main() {
 
     uint8_t fault = temp_sensor.readFault();
     if (fault) {
+      pwm.setMode(false);
       print("[WARN] SENSOR FAULT", fault);
       LED::blinkForCycles(500, 5);
     }
@@ -78,31 +78,20 @@ int main() {
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);
     print("[INFO] PID OUTPUT", pwm_duty_cycle);
 
-    // Starts a new PWM cycle every PWM_CYCLE ms
-    if (PWM_CYCLE < now_ms() - pwm_cycle_start_time) {
-      pwm_cycle_start_time += PWM_CYCLE;
-    }
-
-    // If temperature is too high -> disable relay and move the loop
-    // forward without applying PID output (but keep running it in the background)
+    // If temperature is too high -> disable pwm signal
     if (temp > MAX_BOILER_TEMP) {
-      gpio_put(RELAY_PIN, false);
+      pwm.setMode(false);
       print("[WARN] TEMPERATURE", temp);
-      continue;
     }
 
+    // Disable boiler heating after prolong use time
     if (start_time > MAX_BOILER_RUNTIME) {
-      // todo: implement action
+      pwm.setMode(false);
       print("[WARN] RUNTIME IN MIN", start_time);
     }
 
-    // Compute how many ms PWM should stay active in the current cycle and compare
-    // that to the number of ms that have passed in the current cycle
-    const float pwm_active_ms = pwm_duty_cycle * (PWM_CYCLE / 100.0);
-    if (pwm_active_ms > 100 and pwm_active_ms > now_ms() - pwm_cycle_start_time)
-      gpio_put(RELAY_PIN, true);
-    else
-      gpio_put(RELAY_PIN, false);
+    // Drive the SSR latch
+    gpio_put(RELAY_PIN, pwm.isDriven(pwm_duty_cycle));
 
     // todo: sleep for idk how long
     sleep_ms(50);

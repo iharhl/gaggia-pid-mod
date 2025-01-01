@@ -111,12 +111,12 @@ void SPIDevice::write8ThenRead8(const uint8_t *data, uint8_t *buff, const unsign
 uint16_t SPIDevice::write8ThenRead16(const uint8_t data) const {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    uint16_t buff; // 2 byte buffer
+    uint8_t buff[2]; // 2 byte buffer
     spi_write_blocking(m_spi, &data, 1);
-    spi_read16_blocking(m_spi, 0, &buff, 1);
+    spi_read_blocking(m_spi, 0, buff, 2);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    return buff;
+    return buff[1] + buff[0] * (1<<8);
 }
 
 void SPIDevice::configure() {
