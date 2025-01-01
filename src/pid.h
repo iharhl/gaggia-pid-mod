@@ -8,7 +8,7 @@
 
 class PIDController {
 public:
-    PIDController(float kp, float ki, float kd, float dT);
+    PIDController(float kp, float ki, float kd, float dt);
     ~PIDController() = default;
 private:
     float m_Kp, m_Ki, m_Kd;
@@ -21,7 +21,7 @@ public:
     void enableAntiWindup(float min, float max);
     void setOutputLimits(float min, float max);
 private:
-    float _clipOutput(float output) const;
+    float clipOutput(float output) const;
 };
 
 

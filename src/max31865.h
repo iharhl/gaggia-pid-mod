@@ -83,8 +83,8 @@ public:
 private:
     SPIDevice* m_spidevice;
 
-    float m_R0 = 100; // be default 100 Ohm
-    float m_Rref = 4300; // todo: be default 430 Ohm
+    float m_R0 = 100; // default = 100 Ohm
+    float m_Rref = 4300; // todo: default = 430 Ohm
 
     float calculateTempPrecise(uint16_t RTDraw);
     float calculateTempRough(uint16_t RTDraw);

@@ -4,7 +4,7 @@
 
 class LED {
 public:
-    LED() = default;
+    LED();
     ~LED() = default;
     static bool init();
     static void turnOn();

@@ -5,6 +5,10 @@
 #include "pico/cyw43_arch.h"
 
 
+LED::LED() {
+    init();
+}
+
 bool LED::init() {
     if (cyw43_arch_init()) {
         // printf("Wi-Fi init failed");
