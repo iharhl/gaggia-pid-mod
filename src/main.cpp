@@ -1,15 +1,15 @@
-#include "pico/stdlib.h"
 #include "pid.h"
-#include <string>
 #include "spi.h"
 #include "led.h"
 #include "max31865.h"
-#include <cstdio>
 #include "pwm.h"
 #include "time.h"
 
+#include <pico/stdlib.h>
+#include <string>
+#include <cstdio>
 
-#define RELAY_PIN 11
+
 #define MAX_BOILER_TEMP 140
 #define MAX_BOILER_RUNTIME 30  // in minutes
 #define PWM_CYCLE 5000  // pwm cycle length in ms
@@ -54,7 +54,8 @@ int main() {
   MAX31865 temp_sensor(&spi_device, MAX31865_3WIRE, MAX31865_FILT_50HZ);
 
   // Set up temperature PID controller
-  PIDController pid(5, 0, 0, 1);
+  // todo: implement elapsed time
+  PIDController pid(5, 0, 0);
   pid.setOutputLimits(0, 100);  // output is pwm duty cycle [%]
 
   // Set up PWM signal to SSR latch
@@ -90,8 +91,8 @@ int main() {
       print("[WARN] RUNTIME IN MIN", start_time);
     }
 
-    // Drive the SSR latch
-    gpio_put(RELAY_PIN, pwm.isDriven(pwm_duty_cycle));
+    // Drive the SSR latch (based on PID output)
+    pwm.drivePin(pwm_duty_cycle);
 
     // todo: sleep for idk how long
     sleep_ms(50);

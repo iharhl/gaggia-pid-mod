@@ -1,17 +1,14 @@
-//
-// Created by Ihar Hlukhau on 12/10/2024.
-//
-
 #include "pid.h"
+#include "time.h"
 
 #include <limits>
 
 
-PIDController::PIDController(const float kp, const float ki, const float kd, const float dt) :
+PIDController::PIDController(const float kp, const float ki, const float kd) :
     m_Kp(kp),
     m_Ki(ki),
     m_Kd(kd),
-    m_dT(dt),
+    m_previousTime(0),
     m_previousOutput(0),
     m_previousError(0),
     m_integral(0),
@@ -24,6 +21,11 @@ float PIDController::compute(const float setpoint, const float measurement) {
     // Calculate error
     const float error = setpoint - measurement;
 
+    // Calculate dT (elapsed time since last iteration) in seconds
+    // and update the prev timestamp
+    const double dT = (Timer::now_ms() - m_previousTime) / 1000;
+    m_previousTime = Timer::now_ms();
+
     // Calculate integral
     //
     // If anti-windup is enabled and output is saturated and it has same sign as error
@@ -35,11 +37,11 @@ float PIDController::compute(const float setpoint, const float measurement) {
     const bool is_output_saturated = m_previousOutput > m_maxLimit or m_previousOutput < m_minLimit;
     const bool is_output_and_error_same_sign = (m_integral > 0) ^ (m_previousOutput < 0);
     if (!(m_antiWindupEnabled and is_output_saturated and is_output_and_error_same_sign)) {
-        m_integral += error * m_dT;
+        m_integral += error * dT;
     }
 
     // Calculate derivative
-    const float derivative = (error - m_previousError) / m_dT;
+    const float derivative = (error - m_previousError) / dT;
 
     // Calculate and clip output
     float output = m_Kp * error + m_Ki * m_integral + m_Kd * derivative;

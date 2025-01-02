@@ -1,21 +1,19 @@
-//
-// Created by Ihar Hlukhau on 12/10/2024.
-//
-
 #ifndef PID_H
 #define PID_H
+
+#include <cstdint>
 
 
 class PIDController {
 public:
-    PIDController(float kp, float ki, float kd, float dt);
+    PIDController(float kp, float ki, float kd);
     ~PIDController() = default;
 private:
     float m_Kp, m_Ki, m_Kd;
-    float m_dT; // sampling time
+    double m_previousTime;
     float m_previousOutput, m_previousError, m_integral;
     bool m_antiWindupEnabled;
-    float m_minLimit, m_maxLimit; // not set by default
+    float m_minLimit, m_maxLimit; // by default set to min/max of float type
 public:
     float compute(float setpoint, float measurement);
     void enableAntiWindup(float min, float max);

@@ -15,8 +15,9 @@ public:
     PWMDriver(unsigned pin, unsigned period);
     ~PWMDriver() = default;
     void setMode(bool enabled);
-    bool isDriven(float duty_cycle);
+    void drivePin(float pwm_duty_cycle);
 private:
+    unsigned m_Pin;
     unsigned m_Period;
     bool m_Enabled;
     uint64_t m_PWMCycleStartTime;
