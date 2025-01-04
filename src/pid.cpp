@@ -8,7 +8,7 @@ PIDController::PIDController(const float kp, const float ki, const float kd) :
     m_Kp(kp),
     m_Ki(ki),
     m_Kd(kd),
-    m_previousTime(0),
+    m_previousTime(Timer::now_ms()),
     m_previousOutput(0),
     m_previousError(0),
     m_integral(0),

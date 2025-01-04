@@ -4,3 +4,5 @@ cmake-build*
 .idea/
 .cache/
 .vscode/
+venv/
+utils/__pycache__/

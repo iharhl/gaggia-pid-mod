@@ -22,6 +22,7 @@ add_executable(main
         src/led.cpp
         src/pwm.cpp
         src/time.cpp
+        src/i2c.cpp
 )
 
  pico_enable_stdio_usb(main 1)
@@ -40,6 +41,7 @@ target_link_libraries(main
         pico_stdlib
         pico_cyw43_arch_none
         hardware_spi
+        hardware_i2c
 )
 
 # create map/bin/hex file etc.

@@ -18,11 +18,11 @@ public:
 
     [[nodiscard]] uint8_t read8() const;
     void read8(uint8_t* buff, unsigned len);  // read multiple bytes
-    [[nodiscard]] uint16_t read16() const;
+    // [[nodiscard]] uint16_t read16() const;
 
     void write8(uint8_t data) const;
     void write8(const uint8_t* data, unsigned len) const;  // write multiple bytes
-    void write16(uint16_t data) const;
+    // void write16(uint16_t data) const;
 
     [[nodiscard]] uint8_t write8ThenRead8(uint8_t data) const;
     void write8ThenRead8(const uint8_t* data, uint8_t* buff, unsigned len);

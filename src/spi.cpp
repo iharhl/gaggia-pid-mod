@@ -47,16 +47,6 @@ uint8_t SPIDevice::read8() const {
     return buff;
 }
 
-uint16_t SPIDevice::read16() const {
-    gpio_put(m_cspin, false);
-    sleep_us(2);
-    uint16_t buff; // 2 byte buffer
-    spi_read16_blocking(m_spi, 0, &buff, 1);
-    sleep_us(2);
-    gpio_put(m_cspin, true);
-    return buff;
-}
-
 void SPIDevice::read8(uint8_t* buff, const unsigned len) {
     gpio_put(m_cspin, false);
     sleep_us(2);
@@ -69,14 +59,6 @@ void SPIDevice::write8(const uint8_t data) const {
     gpio_put(m_cspin, false);
     sleep_us(2);
     spi_write_blocking(m_spi, &data, 1);
-    sleep_us(2);
-    gpio_put(m_cspin, true);
-}
-
-void SPIDevice::write16(const uint16_t data) const {
-    gpio_put(m_cspin, false);
-    sleep_us(2);
-    spi_write16_blocking(m_spi, &data, 1);
     sleep_us(2);
     gpio_put(m_cspin, true);
 }
