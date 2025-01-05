@@ -7,7 +7,7 @@ DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
 }
 
 void DisplayManager::updateTemperature(const uint8_t temp) {
-    // Update not faster than once a second (to preserve the display)
+    // Update not faster than once a second
     const uint64_t now = Timer::now_ms();
     if (now - m_prevUpdateTime < 1000)
         return;
@@ -35,6 +35,14 @@ void DisplayManager::updateTemperature(const uint8_t temp) {
 }
 
 void DisplayManager::displayHome() {
+    // Draw thermometer icon
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
+    // Draw 3 digits as 0
+    m_display->drawRegion(digit_map[0], NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
+            NUMBER_FIELD1_WIDTH, NUMBER_FIELD1_HEIGHT);
+    m_display->drawRegion(digit_map[0], NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
+            NUMBER_FIELD2_WIDTH, NUMBER_FIELD2_HEIGHT);
+    m_display->drawRegion(digit_map[0], NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
+            NUMBER_FIELD3_WIDTH, NUMBER_FIELD3_HEIGHT);
 }
 

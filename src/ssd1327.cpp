@@ -45,8 +45,8 @@ void SSD1327::drawRegion(const uint8_t* data, const uint8_t x, const uint8_t y,
 void SSD1327::turnOffAllPixels() {
     configureDrawingRegion(0, 0, m_sizeX, m_sizeY);
     // Write pixel data to the display
-    const uint8_t size = m_sizeX * m_sizeY / 2;
-    const uint8_t data[size] = { }; // would be nice to make constexpr
+    const unsigned size = m_sizeX * m_sizeY / 2;
+    const uint8_t data[size] = { 0x00 }; // would be nice to make constexpr
     sendData(data, size);
 }
 
