@@ -1,4 +1,6 @@
 #include "i2c.h"
+
+#include <cstdio> // todo: remove
 #include <hardware/gpio.h>
 
 
@@ -42,11 +44,11 @@ uint16_t I2CDevice::read16() const {
 // void I2CDevice::write16(uint16_t data) {
 // }
 
-void I2CDevice::write8(const uint8_t data) {
-    i2c_write_blocking(m_i2c, m_addr, &data, 1, false);
+void I2CDevice::write8(const uint8_t data, const bool nostop) {
+    i2c_write_blocking(m_i2c, m_addr, &data, 1, nostop);
 }
 
-void I2CDevice::write8(const uint8_t *data, unsigned len) {
+void I2CDevice::write8(const uint8_t *data, const unsigned len) {
     i2c_write_blocking(m_i2c, m_addr, data, len, false);
 }
 

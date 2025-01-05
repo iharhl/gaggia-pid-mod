@@ -24,19 +24,11 @@ add_executable(main
         src/time.cpp
         src/i2c.cpp
         src/ssd1327.cpp
+        src/display_manager.cpp
 )
 
- pico_enable_stdio_usb(main 1)
- pico_enable_stdio_uart(main 0)
-# target_compile_definitions(main PUBLIC
-#         PICO_TIME_DEFAULT_ALARM_POOL_DISABLED=1
-#         PICO_NO_FPGA_CHECK=1
-# )
-
-#add_compile_options(-ffunction-sections
-#        -fdata-sections
-#)
-#add_link_options(-Wl,--gc-sections)
+pico_enable_stdio_usb(main 1)
+pico_enable_stdio_uart(main 0)
 
 target_link_libraries(main
         pico_stdlib
