@@ -9,9 +9,9 @@ DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
 void DisplayManager::updateTemperature(const uint8_t temp) {
     // Update not faster than once a second
     const uint64_t now = Timer::now_ms();
-    if (now - m_prevUpdateTime < 1000)
+    if (now - m_prevTempUpdateTime < 1000)
         return;
-    m_prevUpdateTime = now;
+    m_prevTempUpdateTime = now;
     // Split value into 3 digits
     const uint8_t hundreds = temp / 100;
     const uint8_t tens = (temp / 10) % 10;
@@ -20,29 +20,55 @@ void DisplayManager::updateTemperature(const uint8_t temp) {
     if (hundreds != m_temp1) {
         m_temp1 = hundreds;
         m_display->drawRegion(digit_map[hundreds], NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
-            NUMBER_FIELD1_WIDTH, NUMBER_FIELD1_HEIGHT);
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     }
     if (tens != m_temp2) {
         m_temp2 = tens;
         m_display->drawRegion(digit_map[tens], NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
-            NUMBER_FIELD2_WIDTH, NUMBER_FIELD2_HEIGHT);
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     }
     if (ones != m_temp3) {
         m_temp3 = ones;
         m_display->drawRegion(digit_map[ones], NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
-            NUMBER_FIELD3_WIDTH, NUMBER_FIELD3_HEIGHT);
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     }
+}
+
+void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
+    // Update not faster than once a half-second
+    const uint64_t now = Timer::now_ms();
+    if (now - m_prevTempUpdateTime < 500)
+        sleep_ms(now - m_prevTempUpdateTime); // todo: ?
+    m_prevTempUpdateTime = now;
+    // Draw letter and digit corresponding to the context and code received
+    m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
+            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+    m_display->drawRegion(digit_map[code], NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+}
+
+void DisplayManager::resetStatus() {
+    m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
+            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+    m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
 }
 
 void DisplayManager::displayHome() {
     // Draw thermometer icon
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
     // Draw 3 digits as 0
-    m_display->drawRegion(digit_map[0], NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
-            NUMBER_FIELD1_WIDTH, NUMBER_FIELD1_HEIGHT);
-    m_display->drawRegion(digit_map[0], NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
-            NUMBER_FIELD2_WIDTH, NUMBER_FIELD2_HEIGHT);
-    m_display->drawRegion(digit_map[0], NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
-            NUMBER_FIELD3_WIDTH, NUMBER_FIELD3_HEIGHT);
+    m_display->drawRegion(NUMBER0, NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    m_display->drawRegion(NUMBER0, NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    m_display->drawRegion(NUMBER0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // Draw status icon
+    m_display->drawRegion(STATUS, ICON2_X, ICON2_Y, ICON2_WIDTH, ICON2_HEIGHT);
+    // Draw OK status
+    m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
+            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+    m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
 }
-

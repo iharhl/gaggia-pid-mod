@@ -1,0 +1,44 @@
+
+=== Temp sensing errors (MAX31865)
+
+[UNUSED]		- C0
+[UNUSED]		- C1
+RTD HIGH THRESH 	- C2
+RTD LOW THRESH 	- C3
+Refin low		- C4
+Refin high		- C5
+Rtdin low		- C6
+Overvolt 		- C7
+
+
+=== Control related
+
+High boiler temp 		- T0
+(warning after use of steam wand; won't disable PWM)
+Very high boiler temp	- T1
+(unexpected state - disable PWM until recovered to below setpoint)
+PID ?
+
+
+=== Protocols related (i2c/spi/pwm errors)
+
+I2C error read 	- P0
+I2C error write 	- P1
+(e.g. verification of sent/recieved data length failed)
+SPI error read	- P2
+SPI error write	- P3
+(samiliar communication errors as i2c)
+PWM error 		- P4
+
+
+=== Display related
+
+(Reserved) - D0
+Problems displaying data/status?
+
+
+
+
+
+
+

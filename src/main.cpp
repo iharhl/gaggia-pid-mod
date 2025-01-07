@@ -7,14 +7,14 @@
 #include "pwm.h"
 #include "display_manager.h"
 #include "time.h"
+#include "assert.h"
 
 #include <pico/stdlib.h>
 #include <string>
 #include <cstdio>
 
-
+#define MAX_BREW_TEMP 22 // todo
 #define MAX_BOILER_TEMP 140
-#define MAX_BOILER_RUNTIME 30  // in minutes
 #define PWM_CYCLE 5000  // pwm cycle length in ms
 #define BREW_TEMP_SETPOINT 105 // pid setpoint for brewing
 
@@ -43,7 +43,6 @@ int main() {
   DisplayManager gui(&display);
 
   // Set up temperature PID controller
-  // todo: implement elapsed time
   PIDController pid(5, 0, 0);
   pid.setOutputLimits(0, 100);  // output is pwm duty cycle [%]
 
@@ -51,37 +50,33 @@ int main() {
   PWMDriver pwm(11, PWM_CYCLE);
   pwm.setMode(true);
 
+  // Setup error handler
+  ErrorHandler error_handler(&pwm, &gui);
+
   // Start time of boiler heating
   uint64_t start_time = Timer::now_min();
 
   while(true) {
 
+    // Get temperature reading from MAX31865
     float temp = temp_sensor.readTemperature(TEMP_CALC_PRECISE);
-    print("[INFO] TEMPERATURE", temp);
+    // print("[INFO] TEMPERATURE", temp);
 
-    uint8_t fault = temp_sensor.readFault();
-    if (fault) {
-      pwm.setMode(false);
-      print("[WARN] SENSOR FAULT", fault);
-      LED::blinkForCycles(500, 5);
-    }
+    // Check if MAX31865 reports faults in temp sensing
+    const uint8_t fault = temp_sensor.readFault();
+    error_handler.myAssert(!fault, CONTEXT_TEMP_SENSING, fault, ERROR);
+    if (fault) { temp = 0; } // set to 0 to avoid triggering overheating error
 
+    // Update display temp
     gui.updateTemperature(temp);
 
+    // Check if temp is too high
+    error_handler.myAssert(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, 0x01, ERROR);
+    error_handler.myAssert(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, 0x02, WARNING);
+
+    // Compute PWM duty cycle
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);
-    print("[INFO] PID OUTPUT", pwm_duty_cycle);
-
-    // If temperature is too high -> disable pwm signal
-    if (temp > MAX_BOILER_TEMP) {
-      pwm.setMode(false);
-      print("[WARN] TEMPERATURE", temp);
-    }
-
-    // Disable boiler heating after prolong use time
-    if (start_time > MAX_BOILER_RUNTIME) {
-      pwm.setMode(false);
-      print("[WARN] RUNTIME IN MIN", start_time);
-    }
+    // print("[INFO] PID OUTPUT", pwm_duty_cycle);
 
     // Drive the SSR (based on PID output)
     pwm.drivePin(pwm_duty_cycle);
