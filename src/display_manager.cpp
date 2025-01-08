@@ -1,6 +1,8 @@
 #include "display_manager.h"
 #include "time.h"
 
+#include <cstdio>
+
 
 DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
     displayHome();
@@ -35,14 +37,17 @@ void DisplayManager::updateTemperature(const uint8_t temp) {
 }
 
 void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
+    // printf("Update triggered with %d - %d \n", context, code);
     // Return if status is already displayed
     if (context == m_status1 and code == m_status2)
         return;
-    // Update not faster than once a half-second
+    // printf("Update waits with %d - %d \n", context, code);
+    // Update not faster than once in two second
     const uint64_t now = Timer::now_ms();
-    if (now - m_prevTempUpdateTime < 500)
+    if (now - m_prevStatusUpdateTime < 2000)
         return;
-    m_prevTempUpdateTime = now;
+    m_prevStatusUpdateTime = now;
+    // printf("Update happens with %d - %d \n", context, code);
     // Draw letter and digit corresponding to the context and code received
     m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
@@ -54,17 +59,25 @@ void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
 }
 
 void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
+    // printf("Reset triggered with %d - %d \n", context, code);
     // Return if status to be reset is not displayed
     if (context != m_status1 or code != m_status2)
         return;
+    // printf("Reset waits with %d - %d \n", context, code);
+    // Update not faster than once in two second
+    const uint64_t now = Timer::now_ms();
+    if (now - m_prevStatusUpdateTime < 2000)
+        return;
+    m_prevStatusUpdateTime = now;
+    // printf("Reset happens with %d - %d \n", context, code);
     // Reset status to OK
     m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status
-    m_status1 = context;
-    m_status2 = code;
+    m_status1 = 0xFF;
+    m_status2 = 0xFF;
 }
 
 void DisplayManager::displayHome() {

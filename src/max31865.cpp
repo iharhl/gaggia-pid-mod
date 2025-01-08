@@ -2,9 +2,6 @@
 
 #include <cmath>
 #include <pico/time.h>
-
-// TODO: remove
-#include <cstdio>
 #include <string>
 
 

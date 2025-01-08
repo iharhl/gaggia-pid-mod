@@ -30,7 +30,7 @@ void SPIDevice::reset() {
     configure();
 }
 
-uint8_t SPIDevice::read8() const {
+uint8_t SPIDevice::read8() {
     // Pull the CS pin low and wait a little to make sure MAX31865 can prepare
     // for communication. Technically the timing of pico sdk is ok (~2 us before
     // clk starts) but this way it is still fast but looks a bit smoother.
@@ -38,11 +38,14 @@ uint8_t SPIDevice::read8() const {
     sleep_us(2);
     // Call read from sdk
     uint8_t buff; // 1 byte buffer
-    spi_read_blocking(m_spi, 0, &buff, 1);
+    const int ret = spi_read_blocking(m_spi, 0, &buff, 1);
     // Again, wait before putting CS pin back to high otherwise it'll be
     // too fast for my liking
     sleep_us(2);
     gpio_put(m_cspin, true);
+    // Check that the amount of bytes communicated matches
+    if (ret != 1)
+        err++;
 
     return buff;
 }
@@ -50,54 +53,56 @@ uint8_t SPIDevice::read8() const {
 void SPIDevice::read8(uint8_t* buff, const unsigned len) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    spi_read_blocking(m_spi, 0, buff, len);
+    const int ret = spi_read_blocking(m_spi, 0, buff, len);
     sleep_us(2);
     gpio_put(m_cspin, true);
+    if (ret != 1)
+        err++;
 }
 
-void SPIDevice::write8(const uint8_t data) const {
+void SPIDevice::write8(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    spi_write_blocking(m_spi, &data, 1);
+    const int ret = spi_write_blocking(m_spi, &data, 1);
     sleep_us(2);
     gpio_put(m_cspin, true);
+    if (ret != 1)
+        err++;
 }
 
-void SPIDevice::write8(const uint8_t *data, const unsigned len) const {
+void SPIDevice::write8(const uint8_t *data, const unsigned len) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    spi_write_blocking(m_spi, data, len);
+    const int ret = spi_write_blocking(m_spi, data, len);
     sleep_us(2);
     gpio_put(m_cspin, true);
+    if (ret != len)
+        err++;
 }
 
-uint8_t SPIDevice::write8ThenRead8(const uint8_t data) const {
+uint8_t SPIDevice::write8ThenRead8(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
     uint8_t buff; // 1 byte buffer
-    spi_write_blocking(m_spi, &data, 1);
-    spi_read_blocking(m_spi, 0, &buff, 1);
+    const int ret1 = spi_write_blocking(m_spi, &data, 1);
+    const int ret2 = spi_read_blocking(m_spi, 0, &buff, 1);
     sleep_us(2);
     gpio_put(m_cspin, true);
+    if (ret1 != 1 and ret2 != 1)
+        err++;
     return buff;
 }
 
-void SPIDevice::write8ThenRead8(const uint8_t *data, uint8_t *buff, const unsigned len) {
-    gpio_put(m_cspin, false);
-    sleep_us(2);
-    spi_write_read_blocking(m_spi, data, buff, len);
-    sleep_us(2);
-    gpio_put(m_cspin, true);
-}
-
-uint16_t SPIDevice::write8ThenRead16(const uint8_t data) const {
+uint16_t SPIDevice::write8ThenRead16(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
     uint8_t buff[2]; // 2 byte buffer
-    spi_write_blocking(m_spi, &data, 1);
-    spi_read_blocking(m_spi, 0, buff, 2);
+    const int ret1 = spi_write_blocking(m_spi, &data, 1);
+    const int ret2 = spi_read_blocking(m_spi, 0, buff, 2);
     sleep_us(2);
     gpio_put(m_cspin, true);
+    if (ret1 != 1 and ret2 != 2)
+        err++;
     return buff[1] + buff[0] * (1<<8);
 }
 

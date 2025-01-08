@@ -13,7 +13,7 @@
 #include <string>
 #include <cstdio>
 
-#define MAX_BREW_TEMP 22 // todo
+#define MAX_BREW_TEMP 24 // todo
 #define MAX_BOILER_TEMP 140
 #define PWM_CYCLE 5000  // pwm cycle length in ms
 #define BREW_TEMP_SETPOINT 105 // pid setpoint for brewing
@@ -64,15 +64,19 @@ int main() {
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault = temp_sensor.readFault();
+    // print("FAULT", fault);
     error_handler.verify(!fault, CONTEXT_TEMP_SENSING, fault, ERROR);
-    if (fault) { temp = 0; } // set to 0 to avoid triggering overheating error
+    if (fault) {
+      temp = 0; // set to 0 to avoid triggering overheating error
+      temp_sensor.clearFault();
+    }
 
     // Update display temp
     gui.updateTemperature(temp);
 
     // Check if temp is too high
-    error_handler.verify(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, 0x01, ERROR);
-    error_handler.verify(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, 0x02, WARNING);
+    error_handler.verify(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, CODE_0, ERROR);
+    error_handler.verify(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, CODE_1, WARNING);
 
     // Compute PWM duty cycle
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);
@@ -81,7 +85,12 @@ int main() {
     // Drive the SSR (based on PID output)
     pwm.drivePin(pwm_duty_cycle);
 
+    // Check for errors in i2c and spi
+    error_handler.verify(!i2c_device.err, CONTEXT_PROTOCOL, CODE_0, ERROR);
+    error_handler.verify(!spi_device.err, CONTEXT_PROTOCOL, CODE_1, ERROR);
+    i2c_device.err = spi_device.err = 0;
+
     // todo: sleep for idk how long
-    sleep_ms(50);
+    sleep_ms(100);
   }
 }

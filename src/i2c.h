@@ -14,13 +14,12 @@ public:
 
     void reset();
 
-    [[nodiscard]] uint8_t read8() const;
+    [[nodiscard]] uint8_t read8();
     void read8(uint8_t* buff, unsigned len); // read multiple bytes
-    [[nodiscard]] uint16_t read16() const;
-
     void write8(uint8_t data, bool nostop);
     void write8(const uint8_t* data, unsigned len); // write multiple bytes
-    // void write16(uint16_t data);
+
+    unsigned err = 0;
 
 private:
     i2c_inst_t* m_i2c;

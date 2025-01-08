@@ -1,12 +1,10 @@
 #include "error.h"
 
-#include <cstdio> // todo: remove
-
 
 ErrorHandler::ErrorHandler(PWMDriver* pwm, DisplayManager* gui) : m_pwm(pwm), m_gui(gui) {
 }
 
-void ErrorHandler::verify(const bool expression, const error_context_e context,
+void ErrorHandler::verify(const bool expression, const uint8_t context,
                             const uint8_t code, const severity_level severity) {
     // Figure out the status code number
     const int status_code = find_bit_high(code);
