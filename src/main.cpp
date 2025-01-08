@@ -7,7 +7,7 @@
 #include "pwm.h"
 #include "display_manager.h"
 #include "time.h"
-#include "assert.h"
+#include "error.h"
 
 #include <pico/stdlib.h>
 #include <string>
@@ -64,15 +64,15 @@ int main() {
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault = temp_sensor.readFault();
-    error_handler.myAssert(!fault, CONTEXT_TEMP_SENSING, fault, ERROR);
+    error_handler.verify(!fault, CONTEXT_TEMP_SENSING, fault, ERROR);
     if (fault) { temp = 0; } // set to 0 to avoid triggering overheating error
 
     // Update display temp
     gui.updateTemperature(temp);
 
     // Check if temp is too high
-    error_handler.myAssert(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, 0x01, ERROR);
-    error_handler.myAssert(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, 0x02, WARNING);
+    error_handler.verify(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, 0x01, ERROR);
+    error_handler.verify(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, 0x02, WARNING);
 
     // Compute PWM duty cycle
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);

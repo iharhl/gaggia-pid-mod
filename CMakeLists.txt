@@ -25,7 +25,7 @@ add_executable(main
         src/i2c.cpp
         src/ssd1327.cpp
         src/display_manager.cpp
-        src/assert.cpp
+        src/error.cpp
 )
 
 pico_enable_stdio_usb(main 1)

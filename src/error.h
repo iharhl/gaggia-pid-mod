@@ -1,5 +1,5 @@
-#ifndef ASSERT_H
-#define ASSERT_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include "pwm.h"
 #include "display_manager.h"
@@ -37,16 +37,17 @@ public:
     ErrorHandler(PWMDriver* pwm, DisplayManager* gui);
     ~ErrorHandler() = default;
 
-    void myAssert(bool expression, error_context_e context, uint8_t code,
+    void verify(bool expression, error_context_e context, uint8_t code,
         severity_level severity);
 
 private:
     PWMDriver* m_pwm;
     DisplayManager* m_gui;
 
-    std::pair<error_context, uint8_t> m_status = std::make_pair(CONTEXT_NONE, 0);
+    error_context_e m_context = CONTEXT_NONE;
+    uint8_t m_code = 0xFF;
 
 };
 
 
-#endif //ASSERT_H
+#endif //ERROR_H

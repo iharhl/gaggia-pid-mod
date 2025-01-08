@@ -1,21 +1,13 @@
 #include "pid.h"
 #include "time.h"
 
-#include <limits>
-
 
 PIDController::PIDController(const float kp, const float ki, const float kd) :
     m_Kp(kp),
     m_Ki(ki),
     m_Kd(kd),
-    m_previousTime(Timer::now_ms()),
-    m_previousOutput(0),
-    m_previousError(0),
-    m_integral(0),
-    m_antiWindupEnabled(false),
-    m_minLimit(std::numeric_limits<float>::min()),
-    m_maxLimit(std::numeric_limits<float>::max())
-{}
+    m_previousTime(Timer::now_ms()) {
+}
 
 float PIDController::compute(const float setpoint, const float measurement) {
     // Calculate error

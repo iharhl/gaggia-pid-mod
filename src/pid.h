@@ -1,7 +1,7 @@
 #ifndef PID_H
 #define PID_H
 
-#include <cstdint>
+#include <limits>
 
 
 class PIDController {
@@ -11,9 +11,10 @@ public:
 private:
     float m_Kp, m_Ki, m_Kd;
     double m_previousTime;
-    float m_previousOutput, m_previousError, m_integral;
-    bool m_antiWindupEnabled;
-    float m_minLimit, m_maxLimit; // by default set to min/max of float type
+    float m_previousOutput = 0, m_previousError = 0, m_integral = 0;
+    bool m_antiWindupEnabled = false;
+    float m_minLimit = std::numeric_limits<float>::min(),
+          m_maxLimit = std::numeric_limits<float>::max();
 public:
     float compute(float setpoint, float measurement);
     void enableAntiWindup(float min, float max);

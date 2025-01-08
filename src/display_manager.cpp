@@ -35,23 +35,36 @@ void DisplayManager::updateTemperature(const uint8_t temp) {
 }
 
 void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
+    // Return if status is already displayed
+    if (context == m_status1 and code == m_status2)
+        return;
     // Update not faster than once a half-second
     const uint64_t now = Timer::now_ms();
     if (now - m_prevTempUpdateTime < 500)
-        sleep_ms(now - m_prevTempUpdateTime); // todo: ?
+        return;
     m_prevTempUpdateTime = now;
     // Draw letter and digit corresponding to the context and code received
     m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(digit_map[code], NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // Store displayed status
+    m_status1 = context;
+    m_status2 = code;
 }
 
-void DisplayManager::resetStatus() {
+void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
+    // Return if status to be reset is not displayed
+    if (context != m_status1 or code != m_status2)
+        return;
+    // Reset status to OK
     m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // Store displayed status
+    m_status1 = context;
+    m_status2 = code;
 }
 
 void DisplayManager::displayHome() {
@@ -64,6 +77,7 @@ void DisplayManager::displayHome() {
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     m_display->drawRegion(NUMBER0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // todo: store digits
     // Draw status icon
     m_display->drawRegion(STATUS, ICON2_X, ICON2_Y, ICON2_WIDTH, ICON2_HEIGHT);
     // Draw OK status
@@ -71,4 +85,5 @@ void DisplayManager::displayHome() {
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // todo: store status
 }

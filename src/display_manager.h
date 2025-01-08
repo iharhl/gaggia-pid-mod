@@ -12,11 +12,12 @@ public:
 
     void updateTemperature(uint8_t temp);
     void updateStatus(uint8_t context, uint8_t code);
-    void resetStatus();
+    void resetStatus(uint8_t context, uint8_t code);
 
 private:
     SSD1327* m_display;
     uint8_t m_temp1, m_temp2, m_temp3 = 0; // represents each digit of temp value
+    uint8_t m_status1, m_status2 = 0xFF; // status context (letter) and code (digit)
     uint64_t m_prevTempUpdateTime, m_prevStatusUpdateTime = 0;
 
     void displayHome();
