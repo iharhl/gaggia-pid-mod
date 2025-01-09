@@ -134,7 +134,7 @@ uint16_t MAX31865::readRTD() {
 
 float MAX31865::readTemperature(const temp_calc_e calcType) {
     const uint16_t rtd = readRTD();
-    if (calcType) {
+    if (calcType == TEMP_CALC_PRECISE) {
         return calculateTempPrecise(rtd);
     }
     return calculateTempRough(rtd);
@@ -177,7 +177,7 @@ float MAX31865::calculateTempPrecise(const uint16_t RTDraw) {
     // The caculation for <0degC is slightly different but as it is not expected
     // for temp to drop this low, the calculation was removed.
     if (temp < 0) {
-        // TODO: error/not supported
+        return 0; // todo: error
     }
 
     return temp;

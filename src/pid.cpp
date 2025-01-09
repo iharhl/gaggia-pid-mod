@@ -6,7 +6,7 @@ PIDController::PIDController(const float kp, const float ki, const float kd) :
     m_Kp(kp),
     m_Ki(ki),
     m_Kd(kd),
-    m_previousTime(Timer::now_ms()) {
+    m_previousTime(Clock::now_ms()) {
 }
 
 float PIDController::compute(const float setpoint, const float measurement) {
@@ -15,8 +15,8 @@ float PIDController::compute(const float setpoint, const float measurement) {
 
     // Calculate dT (elapsed time since last iteration) in seconds
     // and update the prev timestamp
-    const double dT = (Timer::now_ms() - m_previousTime) / 1000;
-    m_previousTime = Timer::now_ms();
+    const double dT = (Clock::now_ms() - m_previousTime) / 1000;
+    m_previousTime = Clock::now_ms();
 
     // Calculate integral
     //

@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-class Timer {
+class Clock {
 public:
     static uint64_t now_ms();
     static uint64_t now_sec();

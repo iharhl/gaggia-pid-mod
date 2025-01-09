@@ -13,10 +13,9 @@
 #include <string>
 #include <cstdio>
 
-#define MAX_BREW_TEMP 24 // todo
-#define MAX_BOILER_TEMP 140
+#define BREW_TEMP_HISTERESIS 2 // todo
 #define PWM_CYCLE 5000  // pwm cycle length in ms
-#define BREW_TEMP_SETPOINT 105 // pid setpoint for brewing
+#define BREW_TEMP_SETPOINT 24 // TODO: change to 105
 
 
 template <typename T>
@@ -53,9 +52,6 @@ int main() {
   // Setup error handler
   ErrorHandler error_handler(&pwm, &gui);
 
-  // Start time of boiler heating
-  uint64_t start_time = Timer::now_min();
-
   while(true) {
 
     // Get temperature reading from MAX31865
@@ -64,19 +60,23 @@ int main() {
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault = temp_sensor.readFault();
-    // print("FAULT", fault);
-    error_handler.verify(!fault, CONTEXT_TEMP_SENSING, fault, ERROR);
+    error_handler.verify(!fault, ERROR_CONTEXT_TEMPSENS, ERROR_CODE_0);
     if (fault) {
       temp = 0; // set to 0 to avoid triggering overheating error
       temp_sensor.clearFault();
+    } else {
+      // Check if temp is not too low. Do it only if no fault report
+      // otherwise its set to 0 anyway.
+      error_handler.verify(temp > BREW_TEMP_SETPOINT - BREW_TEMP_HISTERESIS,
+        ERROR_CONTEXT_TEMPLO, ERROR_CODE_0);
     }
 
     // Update display temp
     gui.updateTemperature(temp);
 
-    // Check if temp is too high
-    error_handler.verify(temp < MAX_BOILER_TEMP, CONTEXT_TEMP_CONTROL, CODE_0, ERROR);
-    error_handler.verify(temp < MAX_BREW_TEMP, CONTEXT_TEMP_CONTROL, CODE_1, WARNING);
+    // Check if temp is not too high
+    error_handler.verify(temp < BREW_TEMP_SETPOINT + BREW_TEMP_HISTERESIS,
+      ERROR_CONTEXT_TEMPHI, ERROR_CODE_I);
 
     // Compute PWM duty cycle
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);
@@ -86,9 +86,12 @@ int main() {
     pwm.drivePin(pwm_duty_cycle);
 
     // Check for errors in i2c and spi
-    error_handler.verify(!i2c_device.err, CONTEXT_PROTOCOL, CODE_0, ERROR);
-    error_handler.verify(!spi_device.err, CONTEXT_PROTOCOL, CODE_1, ERROR);
+    error_handler.verify(!i2c_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_0);
+    error_handler.verify(!spi_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_1);
     i2c_device.err = spi_device.err = 0;
+
+    // Check if brew switch is pressed -> start SM cycle
+    // pump.updateState();
 
     // todo: sleep for idk how long
     sleep_ms(100);

@@ -28,6 +28,7 @@ SPIDevice::SPIDevice(const uint8_t cspin, const uint8_t sckpin,
 /* Reset spi driver instance */
 void SPIDevice::reset() {
     configure();
+    err = 0;
 }
 
 uint8_t SPIDevice::read8() {
