@@ -58,11 +58,6 @@ typedef enum max31865_fault_cycle {
     MAX31865_FAULT_MANUAL_FINISH
 } max31865_fault_cycle_e;
 
-typedef enum temp_calc {
-    TEMP_CALC_ROUGH = 0,
-    TEMP_CALC_PRECISE,
-} temp_calc_e;
-
 
 class MAX31865 {
 public:
@@ -75,7 +70,7 @@ public:
     [[nodiscard]] uint16_t readRTD();
     void clearFault();
     [[nodiscard]] uint8_t readFault(max31865_fault_cycle_e fault_cycle = MAX31865_FAULT_AUTO);
-    float readTemperature(temp_calc_e calcType);
+    float readTemperature();
 
     void setWires(max31865_wire_num_e wires);
     void enableBias(bool b);
@@ -87,10 +82,9 @@ private:
     SPIDevice* m_spidevice;
 
     float m_R0 = 100; // default = 100 Ohm
-    float m_Rref = 4300; // todo: default = 430 Ohm
+    float m_Rref = 430; // default = 430 Ohm
 
-    float calculateTempPrecise(uint16_t RTDraw);
-    float calculateTempRough(uint16_t RTDraw);
+    float calculateTemp(uint16_t RTDraw);
 
     uint8_t readRegisterByte(uint8_t addr);
     uint16_t readRegisterHWord(uint8_t addr);

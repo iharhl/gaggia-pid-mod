@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <hardware/i2c.h>
 
+
 class I2CDevice {
 public:
     explicit I2CDevice(uint8_t sdapin, uint8_t sclpin, uint32_t freq,

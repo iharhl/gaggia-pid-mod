@@ -29,16 +29,10 @@ typedef enum ssd1327_cmd {
     SSD1327_FUNC_SEL_B = 0xD5,
 } ssd1327_cmd_e;
 
-// typedef enum ssd1327_pixel_color {
-//     SSD1327_BLACK = 0x0,
-//     SSD1327_GRAY = 0x8,
-//     SSD1327_WHITE = 0xF,
-// } ssd1327_pixel_color_e;
-
 
 constexpr uint8_t init_cmd_list[] = {
     SSD1327_DISPLAY_OFF,
-    SSD1327_SET_CONTRAST, 0x80,
+    SSD1327_SET_CONTRAST, 0x40,
     SSD1327_SET_START_LINE, 0x00,
     SSD1327_SET_DISPLAY_OFFSET, 0x00,
     SSD1327_DISPLAY_ALL_OFF,

@@ -1,6 +1,7 @@
 #include "pwm.h"
-#include <hardware/gpio.h>
 #include "time.h"
+
+#include <hardware/gpio.h>
 
 
 PWMDriver::PWMDriver(const unsigned pin, const unsigned period) :

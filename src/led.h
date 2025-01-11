@@ -6,7 +6,7 @@ class LED {
 public:
     LED();
     ~LED() = default;
-    static bool init();
+    static void init();
     static void turnOn();
     static void turnOff();
     static void blinkOnce(unsigned delay);

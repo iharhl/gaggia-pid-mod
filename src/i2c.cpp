@@ -1,6 +1,5 @@
 #include "i2c.h"
 
-#include <cstdio> // todo: remove
 #include <hardware/gpio.h>
 
 
