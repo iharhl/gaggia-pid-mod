@@ -1,5 +1,5 @@
 #include "pwm.h"
-#include "time.h"
+#include "clock.h"
 
 #include <hardware/gpio.h>
 
@@ -18,7 +18,10 @@ PWMDriver::PWMDriver(const unsigned pin, const unsigned period) :
 
 void PWMDriver::setMode(const bool enabled) {
     m_Enabled = enabled;
-    if (m_Enabled) { m_PWMCycleStartTime = Clock::now_ms(); }
+    if (m_Enabled)
+        m_PWMCycleStartTime = Clock::now_ms();
+    else
+        gpio_put(m_Pin, false);
 }
 
 void PWMDriver::drivePin(const float pwm_duty_cycle) {

@@ -1,4 +1,5 @@
 #include "max31865.h"
+#include "myprint.h"
 
 #include <cmath>
 #include <pico/time.h>
@@ -11,7 +12,7 @@ MAX31865::MAX31865(SPIDevice* spi_device,
 {
     setWires(wires);
     enableBias(false);
-    convertModeSelect(MAX31865_MODE_NORM_OFF);
+    modeSelect(MAX31865_MODE_NORM_OFF);
     filterSelect(fq);
     setThresholds(0, 0xFFFF);
     clearFault();
@@ -21,7 +22,7 @@ MAX31865::MAX31865(SPIDevice* spi_device,
 void MAX31865::reset() {
     m_spidevice->reset();
     enableBias(false);
-    convertModeSelect(MAX31865_MODE_NORM_OFF);
+    modeSelect(MAX31865_MODE_NORM_OFF);
     clearFault();
 }
 
@@ -43,13 +44,18 @@ void MAX31865::enableBias(const bool b) {
     writeRegisterByte(MAX31865_CONFIG_REG, reg);
 }
 
-void MAX31865::convertModeSelect(const max31865_convert_mode_e mode) {
+void MAX31865::modeSelect(const max31865_convert_mode_e mode) {
     uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
-    if (mode == MAX31865_MODE_AUTO)
+    if (mode == MAX31865_MODE_AUTO) {
         reg |= MAX31865_CONFIG_MODE; // enable auto convertion
-    else
+        reg &= ~MAX31865_CONFIG_1SHOT; // reset 1-shot bit
+        reg |= MAX31865_CONFIG_BIAS; // enable bias
+    }
+    else {
         reg &= ~MAX31865_CONFIG_MODE; // disable auto convertion
+    }
     writeRegisterByte(MAX31865_CONFIG_REG, reg);
+    m_mode = mode;
 }
 
 void MAX31865::filterSelect(const max31865_filter_fq_e fq) {
@@ -80,16 +86,18 @@ uint8_t MAX31865::readFault(const max31865_fault_cycle_e fault_cycle) {
         // Reset config register except wire and filter bits
         uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
         reg &= 0b00010001;
-        //
+        // Initiate fault detection (of type auto or manual)
         switch (fault_cycle) {
             case MAX31865_FAULT_AUTO:
                 writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10000100));
                 sleep_ms(1);
                 break;
             case MAX31865_FAULT_MANUAL_RUN:
+                // Ensure that Vbias has been on for at least 5 time const
                 writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10001000));
                 return 0;
             case MAX31865_FAULT_MANUAL_FINISH:
+                // Wait for at least 5 time const after manual run
                 writeRegisterByte(MAX31865_CONFIG_REG, (reg | 0b10001100));
                 return 0;
             default:
@@ -107,23 +115,30 @@ void MAX31865::configureRTD(const float RTDnominal, const float refResistor) {
 }
 
 uint16_t MAX31865::readRTD() {
+    uint16_t rtd = 0;
+    // Clear fault from previous read
     clearFault();
-    enableBias(true);
-    // Delay to charge input caps after bias was off
-    sleep_ms(10);
-    // Configure single resistance conversion
-    uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
-    reg |= MAX31865_CONFIG_1SHOT;
-    writeRegisterByte(MAX31865_CONFIG_REG, reg);
-    // Wait till conversion is complete (probably can be reduced to ~55 ms for 50Hz)
-    sleep_ms(65);
-    // Read 2 bytes (half-word) from RTD registers
-    uint16_t rtd = readRegisterHWord(MAX31865_RTDMSB_REG);
-    // Disable bias current again to reduce selfheating.
-    enableBias(false);
+    // Read rtd based on the current mode (auto or normally off)
+    if (m_mode == MAX31865_MODE_NORM_OFF) {
+        enableBias(true);
+        // Delay to charge input caps after bias was off
+        sleep_ms(10);
+        // Configure single resistance conversion
+        uint8_t reg = readRegisterByte(MAX31865_CONFIG_REG);
+        reg |= MAX31865_CONFIG_1SHOT;
+        writeRegisterByte(MAX31865_CONFIG_REG, reg);
+        // Wait till conversion is complete (generous 65 ms wait time)
+        sleep_ms(65);
+        // Read 2 bytes (half-word) from RTD registers
+        rtd = readRegisterHWord(MAX31865_RTDMSB_REG);
+        // Disable bias current to reduce self-heating
+        enableBias(false);
+    } else {
+        // Read 2 bytes (half-word) from RTD registers
+        rtd = readRegisterHWord(MAX31865_RTDMSB_REG);
+    }
     // Remove fault (reset most right bit D0)
     rtd >>= 1;
-
     return rtd;
 }
 
@@ -155,7 +170,7 @@ float MAX31865::calculateTemp(const uint16_t RTDraw) {
     // the following equation is used:
     //      R_RTD = (ADCraw * R_REF) / 2^15
 
-    const float R = RTDraw * m_Rref / (1<<15);
+    const float R = static_cast<float>(RTDraw) * m_Rref / (1<<15);
 
     constexpr float Z1 = -RTD_A;
     constexpr float Z2 = RTD_A * RTD_A - (4 * RTD_B);
@@ -164,7 +179,7 @@ float MAX31865::calculateTemp(const uint16_t RTDraw) {
 
     const float temp = (std::sqrt(Z2 + Z3 * R) + Z1) / Z4;
 
-    // The caculation for <0degC is slightly different but as it is not expected
+    // The calculation for < 0 degC is slightly different but as it is not expected
     // for temp to drop this low, the calculation was removed.
     if (temp < 0) {
         return 0; // todo: error

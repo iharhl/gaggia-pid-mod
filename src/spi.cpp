@@ -34,14 +34,15 @@ void SPIDevice::reset() {
 uint8_t SPIDevice::read8() {
     // Pull the CS pin low and wait a little to make sure MAX31865 can prepare
     // for communication. Technically the timing of pico sdk is ok (~2 us before
-    // clk starts) but this way it is still fast but looks a bit smoother.
+    // clk starts) but this way it is still fast enough but the transition is
+    // a bit more clear.
     gpio_put(m_cspin, false);
     sleep_us(2);
     // Call read from sdk
     uint8_t buff; // 1 byte buffer
     const int ret = spi_read_blocking(m_spi, 0, &buff, 1);
     // Again, wait before putting CS pin back to high otherwise it'll be
-    // too fast for my liking
+    // a bit too fast. Again, this results in a more clear transition.
     sleep_us(2);
     gpio_put(m_cspin, true);
     // Check that the amount of bytes communicated matches

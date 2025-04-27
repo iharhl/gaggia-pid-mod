@@ -75,7 +75,7 @@ public:
     void setWires(max31865_wire_num_e wires);
     void enableBias(bool b);
     void filterSelect(max31865_filter_fq_e fq);
-    void convertModeSelect(max31865_convert_mode_e mode);
+    void modeSelect(max31865_convert_mode_e mode);
     void setThresholds(uint16_t lower, uint16_t upper);
 
 private:
@@ -83,6 +83,8 @@ private:
 
     float m_R0 = 100; // default = 100 Ohm
     float m_Rref = 430; // default = 430 Ohm
+
+    max31865_convert_mode_e m_mode = MAX31865_MODE_NORM_OFF;
 
     float calculateTemp(uint16_t RTDraw);
 

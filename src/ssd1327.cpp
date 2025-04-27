@@ -1,5 +1,6 @@
 #include "ssd1327.h"
-#include <string.h> // todo: remove
+
+#include <cstring>
 
 
 /* ==================== PUBLIC METHODS ======================= */
@@ -76,12 +77,10 @@ void SSD1327::sendCommandList(const uint8_t* cmd_list, const unsigned len) {
 }
 
 void SSD1327::sendData(const uint8_t* data, const unsigned len) {
-    // m_i2cdevice->write8(0x40, true); // Co=0 and D/C=1
-    // m_i2cdevice->write8(data, len);
-
-    // todo: fix
-    uint8_t buffer[1 + len];
-    buffer[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
-    memcpy(buffer + 1, data, len);
-    m_i2cdevice->write8(buffer, len+1);
+    uint8_t buff[len + 1];
+    // Prepend the buffer with control byte
+    buff[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
+    // Copy the data into the remaining buffer space
+    memcpy(buff + 1, data, len);
+    m_i2cdevice->write8(buff, len+1);
 }

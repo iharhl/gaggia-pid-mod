@@ -1,5 +1,5 @@
 #include "display_manager.h"
-#include "time.h"
+#include "clock.h"
 
 
 DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {

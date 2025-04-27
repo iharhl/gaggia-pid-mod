@@ -22,7 +22,7 @@ add_executable(main
         src/spi.cpp
         src/led.cpp
         src/pwm.cpp
-        src/time.cpp
+        src/clock.cpp
         src/i2c.cpp
         src/ssd1327.cpp
         src/display_manager.cpp

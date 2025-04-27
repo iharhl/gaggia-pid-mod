@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 
+
 def convertImageToBytes(image_path, output_path):
     with Image.open(image_path) as img:
         img = img.convert("L")  # grayscale mode
@@ -22,12 +23,22 @@ def convertImageToBytes(image_path, output_path):
             else:
                 f.write(f"\n0x{byte:02X}, ")
 
+def main():
+    ...
+    # Usages:
+    # ---------------- Example 1 ----------------------
+    # import glob
+    # for i in range(19):
+    # image_path = glob.glob("docs/display/png-v2/*")
+    # for img in image_path:
+    #     output_path = f"build/{img.split('/')[-1].split('.')[0]}.txt"
+    #     print(output_path)
+    #     convertImageToBytes(img, output_path)
+    # ---------------- Example 2 ----------------------
+    # image_path = "docs/display/png/letter-h.png"
+    # output_path = f"build/letter-h.txt"
+    # convertImageToBytes(image_path, output_path)
 
-# for i in range(10):
-#     image_path = f"docs/display-img/num-{i}-v1.png"
-#     output_path = f"build/img{i}"
-#     convertImageToBytes(image_path, output_path)
-#
-# image_path = "docs/display-img/therm-v3.png"
-# output_path = f"build/img-therm"
-# convertImageToBytes(image_path, output_path)
+
+if __name__ == "__main__":
+    main()
