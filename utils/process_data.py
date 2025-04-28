@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 def main():
     # Read the logfile
-    with open("build/log.txt", "r", encoding="UTF-8") as logfile:
+    with open("docs/test-logs/log-pull-shot.txt", "r", encoding="UTF-8") as logfile:
         content = logfile.read()
 
     # Remove symbols - "b", "'" and "\n"

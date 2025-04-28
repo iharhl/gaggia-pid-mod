@@ -184,7 +184,7 @@ Implementation can be found here — [ssd1327.cpp](src/ssd1327.cpp)
 
 - The GUI driver oversees the display layout, including how quickly the
 display is updated and how individual numbers or letters correspond to
-an actual pixel data. Source file — [gui.cpp](src/display_manager.cpp)
+an actual pixel data. Source file — [gui.cpp](src/gui.cpp)
 
 ### Pump
 

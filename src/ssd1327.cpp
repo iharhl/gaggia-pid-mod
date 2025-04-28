@@ -8,7 +8,7 @@
 SSD1327::SSD1327(I2CDevice* i2c_device, const uint8_t size_x, const uint8_t size_y) :
     m_i2cdevice(i2c_device), m_sizeX(size_x), m_sizeY(size_y)
 {
-    // Send a sequence of commands to initalize the display
+    // Send a sequence of commands to initialize the display
     sendCommandList(init_cmd_list, sizeof(init_cmd_list));
     // Turn off all the pixels at initialization
     turnOffAllPixels();

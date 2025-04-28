@@ -1,5 +1,5 @@
-#ifndef DISPLAY_MANAGER_H
-#define DISPLAY_MANAGER_H
+#ifndef GUI_H
+#define GUI_H
 
 #include <cstdint>
 #include "ssd1327.h"
@@ -16,9 +16,9 @@ public:
 
 private:
     SSD1327* m_display;
-    uint8_t m_temp1, m_temp2, m_temp3 = 0; // represents each digit of temp value
-    uint8_t m_status1, m_status2 = 0xFF; // status context (letter) and code (digit)
-    uint64_t m_prevTempUpdateTime, m_prevStatusUpdateTime = 0;
+    uint8_t m_temp1 = 0, m_temp2 = 0, m_temp3 = 0; // represents each digit of temp value
+    uint8_t m_status1 = 0xFF, m_status2 = 0xFF; // status context (letter) and code (digit)
+    uint64_t m_prevTempUpdateTime = 0, m_prevStatusUpdateTime = 0;
 
     void displayHome();
 };
@@ -521,4 +521,4 @@ constexpr const uint8_t* digit_map[] = {
 };
 
 
-#endif //DISPLAY_MANAGER_H
+#endif //GUI_H

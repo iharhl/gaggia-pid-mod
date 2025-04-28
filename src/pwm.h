@@ -13,7 +13,7 @@
 
 class PWMDriver {
 public:
-    PWMDriver(unsigned pin, unsigned period);
+    explicit PWMDriver(unsigned pin, unsigned period);
     ~PWMDriver() = default;
 
     void setMode(bool enabled);
@@ -21,8 +21,8 @@ public:
 
 private:
     unsigned m_Pin, m_Period;
-    bool m_Enabled;
-    uint64_t m_PWMCycleStartTime;
+    bool m_Enabled = false;
+    uint64_t m_PWMCycleStartTime = 0;
 };
 
 

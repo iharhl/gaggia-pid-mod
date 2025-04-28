@@ -2,7 +2,7 @@
 #define ERROR_H
 
 #include "pwm.h"
-#include "display_manager.h"
+#include "gui.h"
 
 #include <cstdint>
 
@@ -34,7 +34,7 @@ typedef enum error_code {
 
 class ErrorHandler {
 public:
-    ErrorHandler(PWMDriver* pwm, DisplayManager* gui);
+    explicit ErrorHandler(PWMDriver* pwm, DisplayManager* gui);
     ~ErrorHandler() = default;
 
     void verify(bool expression, uint8_t context, uint8_t code);

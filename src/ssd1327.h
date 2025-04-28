@@ -59,7 +59,7 @@ public:
     ~SSD1327() = default;
 
     void clearDisplay();
-    void fillDisplay(); // turn on all of the pixels
+    void fillDisplay(); // turn on all the pixels
     // If commands above are used, the display needs to be reset
     // before writing pixels directly
     void resetDisplay();

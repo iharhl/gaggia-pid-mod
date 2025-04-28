@@ -25,7 +25,7 @@ add_executable(main
         src/clock.cpp
         src/i2c.cpp
         src/ssd1327.cpp
-        src/display_manager.cpp
+        src/gui.cpp
         src/error.cpp
         src/pump.cpp
 )

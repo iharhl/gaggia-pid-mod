@@ -1,8 +1,9 @@
-#include "display_manager.h"
+#include "gui.h"
 #include "clock.h"
 
 
-DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
+DisplayManager::DisplayManager(SSD1327 *display) : m_display(display)
+{
     displayHome();
 }
 
@@ -67,9 +68,8 @@ void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    // Store displayed status
-    m_status1 = 0xFF;
-    m_status2 = 0xFF;
+    // Store displayed status (0xFF is default)
+    m_status1 = m_status2 = 0xFF;
 }
 
 void DisplayManager::displayHome() {
@@ -82,7 +82,8 @@ void DisplayManager::displayHome() {
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     m_display->drawRegion(NUMBER0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    // todo: store digits
+    // Store displayed digits
+    m_temp1 = m_temp2 = m_temp3 = 0;
     // Draw status icon
     m_display->drawRegion(STATUS, ICON2_X, ICON2_Y, ICON2_WIDTH, ICON2_HEIGHT);
     // Draw OK status
@@ -90,5 +91,6 @@ void DisplayManager::displayHome() {
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    // todo: store status
+    // Store displayed status (0xFF is default)
+    m_status1 = m_status2 = 0xFF;
 }

@@ -5,11 +5,10 @@
 #include "max31865.h"
 #include "ssd1327.h"
 #include "pwm.h"
-#include "display_manager.h"
+#include "gui.h"
 #include "pump.h"
 #include "error.h"
 #include "myprint.h"
-#include "clock.h"
 
 #include <pico/stdlib.h>
 
@@ -43,7 +42,6 @@ int main() {
   // Set up temperature PID controller
   PIDController pid(10, 0.7, 0.1); // increase D gain?
   pid.enableAntiWindup(0, 100);  // output is pwm duty cycle [%]
-  pid.enableConditionalIntegral(8);
 
   // Set up PWM signal to the solid-state relay (SSR)
   PWMDriver pwm(11, PWM_CYCLE);

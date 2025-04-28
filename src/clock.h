@@ -1,5 +1,5 @@
-#ifndef TIME_H
-#define TIME_H
+#ifndef CLOCK_H
+#define CLOCK_H
 
 #include <cstdint>
 
@@ -12,4 +12,4 @@ public:
 };
 
 
-#endif //TIME_H
+#endif //CLOCK_H

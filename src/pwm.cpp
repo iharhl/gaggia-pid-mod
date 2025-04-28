@@ -6,9 +6,7 @@
 
 PWMDriver::PWMDriver(const unsigned pin, const unsigned period) :
                     m_Pin(pin),
-                    m_Period(period),
-                    m_Enabled(false),
-                    m_PWMCycleStartTime(0)
+                    m_Period(period)
 {
     // Set pin as gpio output
     gpio_init(m_Pin);
@@ -33,7 +31,7 @@ void PWMDriver::drivePin(const float pwm_duty_cycle) {
     // Compute how many ms PWM should stay active in the current cycle and
     // compare that to the time that have already passed
     const float pwm_active_ms = pwm_duty_cycle * (m_Period / 100.0);
-    if (pwm_active_ms > 100 and pwm_active_ms > Clock::now_ms() - m_PWMCycleStartTime)
+    if (pwm_active_ms > 100.0 and pwm_active_ms > static_cast<float>(Clock::now_ms() - m_PWMCycleStartTime))
         gpio_put(m_Pin, true);
     else
         gpio_put(m_Pin, false);
