@@ -70,9 +70,10 @@ example of such a board in the image below. The sensor itself I found
 on AliExpress with integrated M4 screw and of 3-wire type. See an
 example in the second image below.
 
-<img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
-<img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
-
+<p>
+   <img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
+   <img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
+</p>
 
 ### Power switching
 
@@ -183,8 +184,10 @@ were done to the native Pico SDK SPI calls. The details are available in
 the implementation file — [spi.cpp](src/spi.cpp). Below are examples of
 SPI read and write operations captured with a logic analyzer:
 
-<img src="/docs/pulseview-recording/spi-read.png" alt="SPI-read" width="380" height="170">
-<img src="/docs/pulseview-recording/spi-write.png" alt="SPI-write" width="380" height="170">
+<p>
+   <img src="/docs/pulseview-recording/spi-read.png" alt="SPI-read" width="380" height="170">
+   <img src="/docs/pulseview-recording/spi-write.png" alt="SPI-write" width="380" height="170">
+</p>
 
 The MAX31865 driver implements the chip-specific logic
 and utilizes the SPI class instance for communication. Details can be
