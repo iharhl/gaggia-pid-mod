@@ -214,29 +214,34 @@ leading to a long PWM period, too long to be controlled using Pico's
 dedicated timer peripherals. Therefore, the PWM logic was implemented
 via GPIO actions. Check details here - [pwm.cpp](src/pwm.cpp)
 
-An interesting consideration here is how much power is delivered to the
+> An interesting consideration here is how much power is delivered to the
 heating element during each PWM period. Here's what I mean: suppose
 the PID controller outputs a 10% duty cycle. Depending on the length
 of the PWM period, this 10% can represent different chunks of time —
 for example, 0.11 sec.
-
-In the EU, the AC mains frequency is 50 Hz, meaning each full AC cycle
+> 
+> In the EU, the AC mains frequency is 50 Hz, meaning each full AC cycle
 lasts 20 ms. However, 0.11 sec is not an even multiple of
 the AC period (0.11 ÷ 0.02 = 5.5 cycles), so the PWM period slices
 through the AC waveform at arbitrary points. As a result, depending on
 exactly where in the AC cycle the PWM turns on or off, the average power
 delivered can fluctuate between periods.
-
-To achieve more consistent power delivery, it is desirable to align the
+>
+> To achieve more consistent power delivery, it is desirable to align the
 PWM period so that it is an integer multiple of the AC cycle period — for
 example, setting the PWM period to 2 seconds (100 full AC cycles). This
 way, for any given duty cycle, the on-time will always correspond to a
 whole number of complete AC periods, rather than cutting through the AC
 waveform at arbitrary points. As a result, the average power delivered
 becomes more predictable and stable.
-
-At the end of the day, it is not a crucial detail for this system in my
-opinion, just an interesting topic to think about.
+>
+> Of course, there are some caveats here, and the topic can get quite
+technical — including issues like the non-ideal nature of mains
+frequency, inrush current when switching at AC peaks, and other
+electrical nuances. That said, these details are not critical for this
+particular system in my opinion, especially since the SSR I chose
+features zero-crossing control. Still, it's an interesting topic to
+explore.
 
 ### Error handler
 
