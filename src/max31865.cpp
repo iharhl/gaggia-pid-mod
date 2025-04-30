@@ -146,7 +146,7 @@ float MAX31865::readTemperature() {
     return calculateTemp(readRTD());
 }
 
-float MAX31865::calculateTemp(const uint16_t RTDraw) {
+float MAX31865::calculateTemp(const uint16_t RTDraw) const {
     // The resistance vs. temperature curve is reasonably linear, but has some curvature.
     // Using Callendar-Van Dusen equation, we can describe that curvature.
     // Check https://www.analog.com/media/en/technical-documentation/application-notes/AN709_0.pdf

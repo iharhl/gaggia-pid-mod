@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.28)
 set(CMAKE_CXX_COMPILER_FORCED True)
 set(CMAKE_C_COMPILER_FORCED True)
 
-#set(PICO_BOARD pico_w)
 set(PICO_BOARD pico)
 
 set(PICO_SDK_PATH /Users/ihar/Developer/pico-sdk)
@@ -35,10 +34,23 @@ pico_enable_stdio_uart(main 0)
 
 target_link_libraries(main
         pico_stdlib
-#        pico_cyw43_arch_none
         hardware_spi
         hardware_i2c
 )
 
-# create map/bin/hex file etc.
+# Create map/bin/hex file etc.
 pico_add_extra_outputs(main)
+
+# Add cppcheck
+find_program(CPPCHECK cppcheck)
+if(CPPCHECK)
+    add_custom_command(
+            TARGET main
+            PRE_BUILD
+            COMMAND ${CPPCHECK} src/*.cpp --enable=all --quiet --inconclusive --std=c++17
+                --suppress=unusedFunction --suppress=missingIncludeSystem
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+else()
+    message(WARNING "Cppcheck not found")
+endif()

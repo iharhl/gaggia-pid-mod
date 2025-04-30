@@ -86,7 +86,7 @@ private:
 
     max31865_convert_mode_e m_mode = MAX31865_MODE_NORM_OFF;
 
-    float calculateTemp(uint16_t RTDraw);
+    [[nodiscard]] float calculateTemp(uint16_t RTDraw) const;
 
     uint8_t readRegisterByte(uint8_t addr);
     uint16_t readRegisterHWord(uint8_t addr);

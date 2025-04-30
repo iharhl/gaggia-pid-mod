@@ -4,82 +4,162 @@ Project to add PID temperature control to my Gaggia Classic espresso
 machine. Inspired by other similar project, I wanted to test my skills
 and implement the mod from scratch all by myself.
 
-## Hardware (TODO)
+## Table of contents
 
-The temperature control for Gaggia machine is performed with a use of
-thermostat. It acts as a switch that cuts off when the temperature
-exceeds its rating (107 degC).
+1. [Hardware](#hardware)
+   - [Temperature sensing](#temperature-sensing)
+   - [Power switching](#power-switching)
+   - [Microcontroller board](#microcontroller-board)
+   - [Additional hardware](#additional-hardware)
+   - [Bonus: Pump time control](#bonus-pump-time-control)
+2. [Software](#software)
+   - [Temperature measurement](#temperature-measurement)
+   - [PID controller](#pid-controller)
+   - [Relay control](#relay-control)
+   - [Error handler](#error-handler)
+   - [Display](#display)
+   - [Pump](#pump)
+   - [Other](#other)
+   - [Helper tools](#helper-tools)
+3. [Results](#results)
+4. [Resources](#resources)
 
-Instead, we want to have a temperature sensor that would influence the
-power applied to the heating rods, providing smoother control over the
-water temperature.
+## Hardware
 
-So how would we implement it in practice? Let's focus on these:
+The Gaggia machine regulates temperature using basic thermostat, which
+functions as a switch that cuts off power when the water temperature
+exceeds its rated threshold — 107°C for brewing. However, this approach
+results in a sluggish system response. Once the temperature reaches the
+cutoff point, it tends to slowly oscillate around the target, deviating
+by several degrees. This rudimentary control method lacks the precision
+needed for accurate temperature regulation.
+
+To achieve more precise control, we need to continuously monitor the
+water temperature and adjust the power to the heating element dynamically
+based on real-time measurements. This allows for smoother and more
+accurate temperature control.
+
+To implement such a system, following components are required:
 - Temperature sensor
 - Power switch
 - Microcontroller board
 
-### Temperature sensing (TODO)
+### Temperature sensing
 
-The requirement is to measure relatively brief changes in temperature,
-wide range of measurement (~ 0 to 200 degC) and high accuracy (<1 degC).
+The application requires measuring relatively short-term changes in
+temperature over a wide range (~0°C to 200°C) with high accuracy
+(better than ±0.5°C).
 
-Temperature control of a water heater is a typical use case for RTD
-sensors. Hence, Pt100 RTD was chosen. It fits the requirements and can
-be bought with M4 adapter needed to connect the sensor to the boiler.
+A common use case that fits these requirements is temperature control
+in a water heater, where RTD (Resistance Temperature Detector) sensors
+are frequently employed. For this purpose, a Pt100 RTD sensor was
+selected. It meets the accuracy and range specifications and is readily
+available with an M4 adapter suitable for mounting to a boiler.
 
-The caveat here is that in order to get a precise temperature reading
-from the RTD sensor, precise ADC converter and amplifier have to be used.
-Someone ofcourse came up with the solution already — MAX31865. It is
-"easy-to-use resistance-to-digital converter optimized for platinum
-resistance temperature detectors". We just need to connect the
-sensor, configure it and voilà - you have the temperature reading.
+However, achieving accurate temperature readings from an RTD sensor
+requires a precise analog-to-digital converter (ADC) and amplification.
+Fortunately, this problem has been effectively solved with the MAX31865
+— a user-friendly resistance-to-digital converter optimized for platinum
+RTDs like the Pt100. With the MAX31865, you simply connect the sensor,
+configure the device, and it provides accurate digital temperature
+readings.
 
-### Power switch (TODO)
+Adafruit offers high-quality breakout boards based on the MAX31865
+chip, along with comprehensive documentation and example code. See an
+example of such a board in the image below. The sensor itself I found
+on AliExpress with integrated M4 screw and of 3-wire type. See an
+example in the second image below.
 
-As the thermostat is removed, we need some other component to switch the
-power on and off. Mechanical relay is what first comes to mind. And it
-is technically an OK choice. We don't need to switch power that fast.
-However, it is common to use SSR (solid-state relay) for this application.
-The ones rated for high power applications are vastly available and
-relatively cheap; they are easy to connect to the MCU and allow for 
-very fast switching.
+<img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
+<img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
 
-At the end, I bought a common 40A rated SSR.
 
-### Microcontroller board (TODO)
+### Power switching
 
-The control loop is almost ready - we have a sensor (RTD) and a plant
-(SSR that switches power). The last part is the MCU. There are tons of
-MCUs that fit the job, as long as they have enough GPIOs and support SPI.
+With the thermostat removed, an alternative method is needed to switch
+the power on and off. A mechanical relay is the most straightforward
+option and would technically suffice, especially since high-speed
+switching is not a hard requirement.
 
-I happened to have a Raspberry Pi Pico lying around which I never used
-before. So I decided to use that as my microcontroller board.
+However, solid-state relays (SSRs) are often preferred in high-power
+scenarios for several practical reasons. While both options are capable
+of handling the load, SSRs offer significant advantages:
 
-### Additional hardware (TODO)
+- Silent operation: unlike mechanical relays that produce an audible
+"click" during switching, SSRs operate silently.
 
-Things above are the most essential parts. But there are few things
-missing.
+- Longer lifespan: SSRs have no moving parts, which drastically reduces
+mechanical wear and increases operational longevity, particularly under
+frequent switching conditions.
 
-First of all, where would Pi Pico get the power from? While debugging,
-I can connect via USB but that is temporary solution. AC/DC converter
-is needed to steal some power from the machine.
+- Faster switching: while not essential in this case, the ability of
+SSRs to switch much faster than mechanical relays.
 
-Secondly, it would be nice to observe the temperature reading and the
-status of the machine — hence a small display would be handy to have.
+- Reduced electrical noise: SSRs can be zero-crossing triggered, 
+minimizing electrical noise and transients during switching.
 
-### Pump (TODO)
+Given these benefits, I opted for a commonly available 40A-rated SSR.
+These are widely used, reliable, and relatively inexpensive, making
+them a solid choice for high-power switching applications. According
+to the specifications, the control method is listed as zero-crossing.
+The SSR model is shown on the image below.
 
-Regarding the hydraulics upgrade, the most popular mod is the dimmer mod.
-By chopping the AC supply to the pump, one can control the flow. However,
-I read that there is an additional wear on the pump as it is not designed
-to work in such conditions.
+<img src="/docs/hw/ssr.jpg" alt="hw_SSR" width="220" height="240">
 
-One simple mod that can be done though, is the pump time control. If one
-can interrupt the power to the pump, programmable shot timing can be
-achieved.
+### Microcontroller board
 
-The only component you need is the relay board...
+There are many microcontrollers that could handle this task, as long as
+they provide enough GPIO pins, support both I2C and SPI communication,
+and have sufficient memory resources.
+
+I had a Raspberry Pi Pico on hand that I hadn’t worked with before, so
+I decided to use it as the microcontroller for this project.
+
+<img src="/docs/hw/pipico.jpg" alt="hw_PICO" width="280" height="155">
+
+### Additional hardware
+
+The components mentioned above cover the core functionality, but a few
+important elements are still missing.
+
+First, the Raspberry Pi Pico needs a power source. While it can be
+powered via USB during development and debugging, this is only a
+temporary solution. For a standalone setup, an AC/DC converter is
+required to draw power from the machine itself. I found a small module
+on AliExpress that outputs up to 600mA at 5V, which is more than
+sufficient for powering the Pico and a few peripherals.
+
+<img src="/docs/hw/acdc.jpg" alt="hw_ACDC" width="220" height="220">
+
+Second, we need a way to monitor the machine's temperature in real
+time. A small display would be a practical addition for this purpose,
+allowing for quick and convenient observation of temperature readings.
+I came across a very nice 1.5" 128×128 grayscale OLED display from
+Adafruit, which includes comprehensive documentation.
+
+<img src="/docs/hw/oled.jpg" alt="hw_OLED" width="220" height="240">
+
+
+### Bonus: Pump time control
+
+Regarding the hydraulics upgrade, one of the most popular modifications
+is the dimmer mod. This approach controls the pump flow by chopping the
+AC supply using a phase-angle dimmer circuit. While it allows for
+pressure profiling, it is worth noting that this method can lead to
+increased wear on the pump, as this vibration pump is not designed to
+operate under such conditions.
+
+A simpler and less damaging alternative is pump time control. By
+interrupting power to the pump, you can implement programmable shot
+timing — effectively automating brew durations without modifying flow
+or pressure directly.
+
+All that’s required for this mod is a relay board and some wiring to
+detect when the brew button has been pressed.
+
+However, since I dragged this project for too long, I ultimately decided
+to skip this mod — it wouldn't have made a meaningful difference for
+my use case anyway.
 
 
 ## Software
@@ -93,9 +173,8 @@ in its own class. For example, each communication protocol (I2C/SPI) is
 implemented as a separate class. The drivers for external components,
 such as MAX31865 and the OLED display, are also organized into classes
 that utilize the I2C or SPI class instances for communication.
-Let's break up down below.
 
-### Temperature sensor
+### Temperature measurement
 
 Temperature measurements are obtained via the MAX31865 chip, which
 uses SPI for communication. Hence, the SPI driver class was implemented.
@@ -104,8 +183,8 @@ were done to the native Pico SDK SPI calls. The details are available in
 the implementation file — [spi.cpp](src/spi.cpp). Below are examples of
 SPI read and write operations captured with a logic analyzer:
 
-<img src="/docs/pulseview-recording/spi-read.png" alt="SPI-read" width="420" height="200">
-<img src="/docs/pulseview-recording/spi-write.png" alt="SPI-write" width="420" height="200">
+<img src="/docs/pulseview-recording/spi-read.png" alt="SPI-read" width="380" height="170">
+<img src="/docs/pulseview-recording/spi-write.png" alt="SPI-write" width="380" height="170">
 
 The MAX31865 driver implements the chip-specific logic
 and utilizes the SPI class instance for communication. Details can be
@@ -124,7 +203,7 @@ inputs (error is calculated inside the class), and outputs the PWM
 percentage (duty cycle). Implementation can be found here —
 [pid.cpp](src/pid.cpp)
 
-### Relay
+### Relay control
 
 The SSR is controlled via PWM, hence the logic is put into PWM class.
 The small problem here is that the water heating systems are quite slow
@@ -199,20 +278,32 @@ This setup enables precise shot timing without the need for manual
 tracking of time. While I haven't set up the hardware myself, I've
 left the code in place in case I decide to connect it in the future.
 
-### Others (TODO)
+### Other
 
-Explain clock, led and myprint...
+Source code also includes:
 
-### Utils (TODO)
+- Clock class provides current uptime of the MCU in ms, sec and min.
+All the methods are static as the class does not need to be instantiated,
+it just encapsulates the logic relevant to time. Check
+[src/clock.cpp](src/clock.cpp)
 
-Explain python helper files...
+- Led class controls the on-board LED. Same as clock, all methods are
+static. Check [src/led.cpp](src/led.cpp)
 
+- For debug and test data recording, custom print functions were
+implemented. They communicate data over serial to a connected
+computer. Check [src/myprint.h](src/myprint.h)
 
-## Results (TODO)
+### Helper tools
 
 ...
 
-## Resources (TODO)
+
+## Results
+
+...
+
+## Resources
 
 Code inspirations:
 - https://github.com/adafruit/Adafruit_MAX31865/tree/master
