@@ -1,8 +1,14 @@
 # Gaggia PID mod
 
-Project to add PID temperature control to my Gaggia Classic espresso
-machine. Inspired by other similar project, I wanted to test my skills
-and implement the mod from scratch all by myself.
+This project adds PID temperature control to my Gaggia Classic
+espresso machine. Inspired by similar DIY efforts, I wanted to
+challenge myself by designing and implementing the modification
+entirely from scratch. 
+
+A PID controller offers more precise and consistent temperature
+regulation compared to the stock thermostat, which helps improve shot
+quality.
+
 
 ## Table of contents
 
@@ -25,6 +31,7 @@ and implement the mod from scratch all by myself.
    - [Final assembly](#final-assembly)
    - [Testing](#testing)
 4. [Resources](#resources)
+
 
 ## Hardware
 
@@ -73,8 +80,8 @@ on AliExpress with integrated M4 screw and of 3-wire type. See an
 example in the second image below.
 
 <p>
-   <img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
-   <img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
+<img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
+<img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
 </p>
 
 ### Power switching
@@ -191,8 +198,8 @@ the implementation file — [src/spi.cpp](src/spi.cpp). Below are examples of
 SPI read and write operations captured with a logic analyzer:
 
 <p>
-   <img src="/docs/recordings/spi-read.png" alt="SPI-read" width="380" height="170">
-   <img src="/docs/recordings/spi-write.png" alt="SPI-write" width="380" height="170">
+<img src="/docs/recordings/spi-read.png" alt="SPI-read" width="380" height="170">
+<img src="/docs/recordings/spi-write.png" alt="SPI-write" width="380" height="170">
 </p>
 
 The MAX31865 driver implements the chip-specific logic
@@ -279,7 +286,21 @@ Implementation can be found here — [src/ssd1327.cpp](src/ssd1327.cpp)
 display is updated and how individual numbers or letters correspond to
 an actual pixel data. Source file — [src/gui.cpp](src/gui.cpp)
 
-**TODO**: insert layout explanation
+Image below shows the layout of 128x128 display. It is split into three
+rows. Each row has an indicator of some parameters. In this case:
+
+1. Thermometer icon and three digit fields to show the temperature.
+2. Status icon and two fields to show the status code. Error codes are 
+represented as a letter and a number. Additional codes are:
+   - OK for no errors and boiler reading for brewing.
+   - LO for boiler too cold for brewing.
+   - HI for boiler too hot for brewing.
+3. Cup icon and two digit fields to show the shot timer. When the brew
+switch is pressed, the timer starts. After the button is released, the
+timer remains visible for 5 seconds before automatically resetting to
+zero.
+
+<img src="/docs/display/display-layout.png" alt="disp" width="350" height="350">
 
 ### Pump
 
@@ -296,8 +317,6 @@ left the code in place.
 
 The part of the code that is used though, is detection of brew button
 presses. This enables real-time display of the shot extraction time.
-When the button is released, the timer remains visible for 5 seconds
-before automatically resetting to zero.
 
 ### Other
 
@@ -378,6 +397,10 @@ tuned further, the current performance is satisfactory to me.
 
 ## Resources
 
+Material on how to approach the mod:
+- Gagginno project - https://gaggiuino.github.io/#/
+- BaristaGadgets kit, specifically this video - https://www.youtube.com/watch?v=gj9qLIDaF9g
+
 Example code for drivers development:
 - https://github.com/adafruit/Adafruit_MAX31865/tree/master
 - https://github.com/adafruit/Adafruit_SSD1327/blob/master/Adafruit_SSD1327.cpp
@@ -386,7 +409,7 @@ Example code for drivers development:
 Control strategy inspirations:
 - https://github.com/shmick/Espresso-PID-Controller/tree/master
 - https://www.instructables.com/PID-Temperature-Controller/
-- PID integral anti-windup implementation from "PID Control" series by the OG Brian Douglas
+- PID integral anti-windup implementation from "PID Control" series by Brian Douglas
 
 MAX31865 setup guide:
 - https://learn.adafruit.com/adafruit-max31865-rtd-pt100-amplifier/overview

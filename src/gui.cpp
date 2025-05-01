@@ -73,20 +73,16 @@ void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
 }
 
 void DisplayManager::updateShotTime(const uint8_t time) {
-    // Update not faster than once in half a second
+    // Update not faster than once in 950 ms
     const uint64_t now = Clock::now_ms();
     if (now - m_prevShotUpdateTime < 950)
         return;
     m_prevShotUpdateTime = now;
     // Handle time > 99 sec
-    uint8_t tens, ones;
+    uint8_t tens = 9, ones = 9;
     if (time <= 99) {
         tens = (time / 10) % 10;
         ones = time % 10;
-    }
-    else {
-        tens = 9;
-        ones = 9;
     }
     // After brew switch is reset, start a time to hold the brew time on the
     // display for 5 sec (5000 ms)
