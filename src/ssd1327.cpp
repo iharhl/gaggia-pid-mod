@@ -1,7 +1,7 @@
 #include "ssd1327.h"
 
 #include <cstring>
-#include <vector>
+#include <cstdlib>
 
 
 /* ==================== PUBLIC METHODS ======================= */
@@ -47,11 +47,18 @@ void SSD1327::turnOffAllPixels() {
     configureDrawingRegion(0, 0, m_sizeX, m_sizeY);
     // Write pixel data to the display
     const unsigned size = m_sizeX * m_sizeY / 2;
-    // Have to use vector because the data is of variable size (even
-    // though all elements are zero). So it should not be allocated on
-    // the stack during runtime.
-    const std::vector<uint8_t> data(size, 0x00);
-    sendData(data.data(), size);
+    // Allocate memory for size elements and zero-initialize the memory.
+    // Need to dynamically allocate as the buffer size is not now during compile-time.
+    // It is not a good idea to allocate the variable-size buffer on the stack.
+    // Could use vector here, but it blows up the size of the binary.
+    auto* data = static_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
+    // Handle allocation failure
+    if (data == nullptr)
+        return;
+    // Send the data
+    sendData(data, size);
+    // Free the allocated memory
+    free(data);
 }
 
 void SSD1327::configureDrawingRegion(const uint8_t x, const uint8_t y,
@@ -81,13 +88,20 @@ void SSD1327::sendCommandList(const uint8_t* cmd_list, const unsigned len) {
 }
 
 void SSD1327::sendData(const uint8_t* data, const unsigned len) {
-    // Create a vector with len + 1 elements. Have to use vector
-    // because the buffer is variable size and should not be
-    // allocated on the stack during runtime.
-    std::vector<uint8_t> buff(len + 1);
+    // Allocate memory for len + 1 elements.
+    // Need to dynamically allocate as the buffer size is not now during compile-time, and it is
+    // not a good idea to allocate the variable-size buffer on the stack.
+    // Could use vector here, but it blows up the size of the binary.
+    auto* buff = static_cast<uint8_t*>(malloc((len + 1) * sizeof(uint8_t)));
+    // Handle memory allocation failure
+    if (buff == nullptr)
+        return;
     // Set control byte
     buff[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
     // Copy the data into the remaining buffer space
     memcpy(&buff[1], data, len);
-    m_i2cdevice->write8(buff.data(), len+1);
+    // Send it over I2C
+    m_i2cdevice->write8(buff, len+1);
+    // Free the allocated memory
+    free(buff);
 }
