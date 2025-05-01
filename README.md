@@ -80,8 +80,8 @@ on AliExpress with integrated M4 screw and of 3-wire type. See an
 example in the second image below.
 
 <p>
-<img src="/docs/hw/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
-<img src="/docs/hw/pt100.jpg" alt="hw_PT100" width="225" height="225">
+<img src="/docs/hardware/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
+<img src="/docs/hardware/pt100.jpg" alt="hw_PT100" width="225" height="225">
 </p>
 
 ### Power switching
@@ -114,7 +114,7 @@ them a solid choice for high-power switching applications. According
 to the specifications, the control method is listed as zero-crossing.
 The SSR model is shown on the image below.
 
-<img src="/docs/hw/ssr.jpg" alt="hw_SSR" width="220" height="240">
+<img src="/docs/hardware/ssr.jpg" alt="hw_SSR" width="220" height="240">
 
 ### Microcontroller board
 
@@ -125,7 +125,7 @@ and have sufficient memory resources.
 I had a Raspberry Pi Pico on hand that I hadn’t worked with before, so
 I decided to use it as the microcontroller for this project.
 
-<img src="/docs/hw/pipico.jpg" alt="hw_PICO" width="280" height="155">
+<img src="/docs/hardware/pipico.jpg" alt="hw_PICO" width="280" height="155">
 
 ### Additional hardware
 
@@ -139,7 +139,7 @@ required to draw power from the machine itself. I found a small module
 on AliExpress that outputs up to 600mA at 5V, which is more than
 sufficient for powering the Pico and a few peripherals.
 
-<img src="/docs/hw/acdc.jpg" alt="hw_ACDC" width="220" height="220">
+<img src="/docs/hardware/acdc.jpg" alt="hw_ACDC" width="220" height="220">
 
 Second, we need a way to monitor the machine's temperature in real
 time. A small display would be a practical addition for this purpose,
@@ -147,7 +147,7 @@ allowing for quick and convenient observation of temperature readings.
 I came across a very nice 1.5" 128×128 grayscale OLED display from
 Adafruit, which includes comprehensive documentation.
 
-<img src="/docs/hw/oled.jpg" alt="hw_OLED" width="220" height="240">
+<img src="/docs/hardware/oled.jpg" alt="hw_OLED" width="220" height="240">
 
 
 ### Bonus: Brew timer
@@ -380,8 +380,8 @@ temperature peak reached 110°C, quite an overshoot, but the second
 peak dropped to an acceptable 108°C.
 
 <p>
-<img src="/docs/final-tests/heatup.png" alt="init_heat" width="300" height="225">
-<img src="/docs/final-tests/steam-heatup-rec.png" alt="steam_rec" width="300" height="225">
+<img src="/docs/tests/heatup.png" alt="init_heat" width="300" height="225">
+<img src="/docs/tests/steam-heatup-rec.png" alt="steam_rec" width="300" height="225">
 </p>
 
 Recordings of water dump and shot pull tests are shown below. Since
@@ -390,8 +390,8 @@ is better than during the water dump: temperature dip is smaller, and
 overshoot is reduced.
 
 <p>
-<img src="/docs/final-tests/water-dump.png" alt="water_dump" width="300" height="225">
-<img src="/docs/final-tests/shot-pull.png" alt="shot_pull" width="300" height="225">
+<img src="/docs/tests/water-dump.png" alt="water_dump" width="300" height="225">
+<img src="/docs/tests/shot-pull.png" alt="shot_pull" width="300" height="225">
 </p>
 
 Overall, the control system performs well for real-world use and

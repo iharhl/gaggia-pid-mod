@@ -41,6 +41,14 @@ target_link_libraries(main
 # Create map/bin/hex file etc.
 pico_add_extra_outputs(main)
 
+# Enable all warning
+target_compile_options(main
+        PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
+
 # Add cppcheck
 find_program(CPPCHECK cppcheck)
 if(CPPCHECK)

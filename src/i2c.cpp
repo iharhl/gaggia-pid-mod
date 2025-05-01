@@ -33,7 +33,7 @@ uint8_t I2CDevice::read8() {
 
 void I2CDevice::read8(uint8_t *buff, unsigned len) {
     const int ret = i2c_read_blocking(m_i2c, m_addr, buff, len, false);
-    if (ret != len)
+    if (ret != static_cast<int>(len))
         err++;
 }
 
@@ -45,7 +45,7 @@ void I2CDevice::write8(const uint8_t data, const bool nostop) {
 
 void I2CDevice::write8(const uint8_t *data, const unsigned len) {
     const int ret = i2c_write_blocking(m_i2c, m_addr, data, len, false);
-    if (ret != len)
+    if (ret != static_cast<int>(len))
         err++;
 }
 

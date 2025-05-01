@@ -1,6 +1,7 @@
 #include "ssd1327.h"
 
 #include <cstring>
+#include <vector>
 
 
 /* ==================== PUBLIC METHODS ======================= */
@@ -46,8 +47,11 @@ void SSD1327::turnOffAllPixels() {
     configureDrawingRegion(0, 0, m_sizeX, m_sizeY);
     // Write pixel data to the display
     const unsigned size = m_sizeX * m_sizeY / 2;
-    const uint8_t data[size] = { 0x00 }; // would be nice to make constexpr
-    sendData(data, size);
+    // Have to use vector because the data is of variable size (even
+    // though all elements are zero). So it should not be allocated on
+    // the stack during runtime.
+    const std::vector<uint8_t> data(size, 0x00);
+    sendData(data.data(), size);
 }
 
 void SSD1327::configureDrawingRegion(const uint8_t x, const uint8_t y,
@@ -77,10 +81,13 @@ void SSD1327::sendCommandList(const uint8_t* cmd_list, const unsigned len) {
 }
 
 void SSD1327::sendData(const uint8_t* data, const unsigned len) {
-    uint8_t buff[len + 1];
-    // Prepend the buffer with control byte
+    // Create a vector with len + 1 elements. Have to use vector
+    // because the buffer is variable size and should not be
+    // allocated on the stack during runtime.
+    std::vector<uint8_t> buff(len + 1);
+    // Set control byte
     buff[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
     // Copy the data into the remaining buffer space
-    memcpy(buff + 1, data, len);
-    m_i2cdevice->write8(buff, len+1);
+    memcpy(&buff[1], data, len);
+    m_i2cdevice->write8(buff.data(), len+1);
 }

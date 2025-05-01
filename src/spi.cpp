@@ -78,7 +78,7 @@ void SPIDevice::write8(const uint8_t *data, const unsigned len) {
     const int ret = spi_write_blocking(m_spi, data, len);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret != len)
+    if (ret != static_cast<int>(len))
         err++;
 }
 

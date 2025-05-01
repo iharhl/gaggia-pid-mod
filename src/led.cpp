@@ -33,7 +33,7 @@ void LED::blinkOnce(const unsigned delay) {
 
 void LED::blinkForDuration(const unsigned delay, const unsigned duration) {
     const unsigned cycles = duration / delay; // calc the number of blink cycles
-    for (int i = 0; i < cycles; ++i) {
+    for (unsigned i = 0; i < cycles; ++i) {
         gpio_put(PICO_DEFAULT_LED_PIN, true);
         sleep_ms(delay);
         gpio_put(PICO_DEFAULT_LED_PIN, false);
@@ -41,7 +41,7 @@ void LED::blinkForDuration(const unsigned delay, const unsigned duration) {
 }
 
 void LED::blinkForCycles(const unsigned delay, const unsigned cycles) {
-    for (int i = 0; i < cycles; ++i) {
+    for (unsigned i = 0; i < cycles; ++i) {
         gpio_put(PICO_DEFAULT_LED_PIN, true);
         sleep_ms(delay);
         gpio_put(PICO_DEFAULT_LED_PIN, false);
