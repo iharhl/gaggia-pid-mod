@@ -188,6 +188,10 @@ implemented as a separate class. The drivers for external components,
 such as MAX31865 and the OLED display, are also organized into classes
 that utilize the I2C or SPI class instances for communication.
 
+Here is a high-level overview of the software:
+
+<img src="/docs/architecture/arch.png" alt="SW-arch" width="380" height="400">
+
 ### Temperature measurement
 
 Temperature measurements are obtained via the MAX31865 chip, which
