@@ -11,7 +11,7 @@ and implement the mod from scratch all by myself.
    - [Power switching](#power-switching)
    - [Microcontroller board](#microcontroller-board)
    - [Additional hardware](#additional-hardware)
-   - [Bonus: Pump time control](#bonus-pump-time-control)
+   - [Bonus: Brew timer](#bonus-brew-timer)
 2. [Software](#software)
    - [Temperature measurement](#temperature-measurement)
    - [PID controller](#pid-controller)
@@ -143,7 +143,7 @@ Adafruit, which includes comprehensive documentation.
 <img src="/docs/hw/oled.jpg" alt="hw_OLED" width="220" height="240">
 
 
-### Bonus: Pump time control
+### Bonus: Brew timer
 
 Regarding the hydraulics upgrade, one of the most popular modifications
 is the dimmer mod. This approach controls the pump flow by chopping the
@@ -160,9 +160,13 @@ or pressure directly.
 All that’s required for this mod is a relay board and some wiring to
 detect when the brew button has been pressed.
 
-However, since I dragged this project for too long, I ultimately decided
-to skip this mod — it wouldn't have made a meaningful difference for
-my use case anyway.
+Since I dragged this project out for too long, I ultimately decided
+to skip the relay part of the mod — it would not have made a meaningful
+difference for my use case anyway. However, I wired the brew button
+to the Pico. On the EU model of the machine, there is a switch-off board
+included. Since I do not need its functionality, I removed the wires on
+the left side of the brew switch (in my case, blue and green ones).
+These connections can now be used to detect when the button is pressed.
 
 
 ## Software
@@ -275,18 +279,25 @@ Implementation can be found here — [src/ssd1327.cpp](src/ssd1327.cpp)
 display is updated and how individual numbers or letters correspond to
 an actual pixel data. Source file — [src/gui.cpp](src/gui.cpp)
 
+**TODO**: insert layout explanation
+
 ### Pump
 
 The pump logic is based on a simple state machine. When the brew button
 is pressed, the normally closed (NC) relay remains inactive, allowing
 the water to flow. After the programmed time elapses, the relay opens,
 cutting the power to the pump. After the brew button is released by the
-user, the relay returns to the default closed position. For details, see
+user, the relay returns to its default closed position. For details, see
 — [src/pump.cpp](src/pump.cpp)
 
 This setup enables precise shot timing without the need for manual
-tracking of time. While I haven't set up the hardware myself, I've
-left the code in place in case I decide to connect it in the future.
+tracking of time. While I have not set up the relay part myself, I've
+left the code in place.
+
+The part of the code that is used though, is detection of brew button
+presses. This enables real-time display of the shot extraction time.
+When the button is released, the timer remains visible for 5 seconds
+before automatically resetting to zero.
 
 ### Other
 
@@ -328,7 +339,41 @@ Here is the circuit diagram of the final assembly:
 
 ### Testing
 
-...
+To calibrate the PID, I began by recording performance data. The
+graphs below show the results after several calibration attempts.
+
+The boiler heat-up is quite smooth, reaching operating temperature in
+about 90 seconds. There's a slight initial overshoot of approximately
+1°C, which quickly settles.
+
+I also tested how well my modification works with the stock steam
+control. As expected, once the boiler was heated, I reset the steam
+switch, and the temperature gradually decreased. At around 150 seconds,
+I activated the brew button to circulate water and help cool the boiler,
+then reset it after about 20 seconds.
+
+The PID controller managed this transition adequately. The first
+temperature peak reached 110°C, quite an overshoot, but the second
+peak dropped to an acceptable 108°C.
+
+<p>
+<img src="/docs/final-tests/heatup.png" alt="init_heat" width="300" height="225">
+<img src="/docs/final-tests/steam-heatup-rec.png" alt="steam_rec" width="300" height="225">
+</p>
+
+Recordings of water dump and shot pull tests are shown below. Since
+water flow is more restricted during an actual shot, the system performs
+is better than during the water dump: temperature dip is smaller, and
+overshoot is reduced.
+
+<p>
+<img src="/docs/final-tests/water-dump.png" alt="water_dump" width="300" height="225">
+<img src="/docs/final-tests/shot-pull.png" alt="shot_pull" width="300" height="225">
+</p>
+
+Overall, the control system performs well for real-world use and
+outperforms the stock configuration. While the PID can definitely be
+tuned further, the current performance is satisfactory to me.
 
 
 ## Resources
