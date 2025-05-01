@@ -24,20 +24,12 @@ def convertImageToBytes(image_path, output_path):
                 f.write(f"\n0x{byte:02X}, ")
 
 def main():
-    ...
-    # Usages:
-    # ---------------- Example 1 ----------------------
-    # import glob
-    # for i in range(19):
-    # image_path = glob.glob("docs/display/png-v2/*")
-    # for img in image_path:
-    #     output_path = f"build/{img.split('/')[-1].split('.')[0]}.txt"
-    #     print(output_path)
-    #     convertImageToBytes(img, output_path)
-    # ---------------- Example 2 ----------------------
-    # image_path = "docs/display/png/letter-h.png"
-    # output_path = f"build/letter-h.txt"
-    # convertImageToBytes(image_path, output_path)
+    # Usage example:
+    image_path = "docs/display/png/cup.png"
+    output_path = f"build/cup.txt"
+    convertImageToBytes(image_path, output_path)
+    # After that copy the data from txt file into the constexpr array
+    # inside the src/gui.h
 
 
 if __name__ == "__main__":

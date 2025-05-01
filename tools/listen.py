@@ -2,7 +2,7 @@ import serial
 
 
 def main():
-    # Establish connection with Pi Pico connected via USB to my macbook
+    # Establish connection with Pi Pico connected via USB to the laptop
     port = "/dev/tty.usbmodem1101"
     baudrate = 115200
     conn = serial.Serial(port, baudrate)

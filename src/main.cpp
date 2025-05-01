@@ -16,7 +16,6 @@
 #define BREW_TEMP_HYSTERESIS 3 // for error display
 #define PWM_CYCLE 2000  // pwm cycle length in ms
 #define BREW_TEMP_SETPOINT 107
-#define PUMP_AUTOMATIC_CONTROL 0
 
 
 int main() {
@@ -47,8 +46,8 @@ int main() {
   PWMDriver pwm(11, PWM_CYCLE);
   pwm.setMode(true);
 
-  // Set up pump control
-  Pump pump(16, 17);
+  // Set up pump class
+  Pump pump(26);
 
   // Setup error handler
   ErrorHandler error_handler(&pwm, &gui);
@@ -56,7 +55,7 @@ int main() {
   while(true) {
     // Get temperature reading from MAX31865
     float temp = temp_sensor.readTemperature();
-    printfloat(temp); // every ~100ms
+    // printfloat(temp); // every ~100ms
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault = temp_sensor.readFault();
@@ -71,8 +70,12 @@ int main() {
         ERROR_CONTEXT_TEMPLO, ERROR_CODE_0);
     }
 
+    // Update pump state based on the brew switch.
+    const uint8_t brewtime = pump.updateState();
+
     // Update display temp
     gui.updateTemperature(temp);
+    gui.updateShotTime(brewtime);
 
     // Check if temp is not too high
     error_handler.verify(temp < BREW_TEMP_SETPOINT + BREW_TEMP_HYSTERESIS,
@@ -88,12 +91,6 @@ int main() {
     error_handler.verify(!i2c_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_0);
     error_handler.verify(!spi_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_1);
     i2c_device.err = spi_device.err = 0;
-
-    // Update state of pump relay based on brew switch.
-    // If automatic control not enabled -> always stays in the idle state
-    // when the relay is closed.
-    if constexpr (PUMP_AUTOMATIC_CONTROL)
-      pump.updateState();
 
     // Sleep to make a whole loop execute once in ~100ms
     sleep_ms(23);

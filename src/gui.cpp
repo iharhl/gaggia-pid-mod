@@ -72,6 +72,43 @@ void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
     m_status1 = m_status2 = 0xFF;
 }
 
+void DisplayManager::updateShotTime(const uint8_t time) {
+    // Update not faster than once in half a second
+    const uint64_t now = Clock::now_ms();
+    if (now - m_prevShotUpdateTime < 950)
+        return;
+    m_prevShotUpdateTime = now;
+    // Handle time > 99 sec
+    uint8_t tens, ones;
+    if (time <= 99) {
+        tens = (time / 10) % 10;
+        ones = time % 10;
+    }
+    else {
+        tens = 9;
+        ones = 9;
+    }
+    // After brew switch is reset, start a time to hold the brew time on the
+    // display for 5 sec (5000 ms)
+    if (time == 0 and (m_shottime1 != 0 or m_shottime2 != 0) and m_brewHoldTimeStart == 0) {
+        m_brewHoldTimeStart = now;
+        return;
+    }
+    // Update each digit if one of them is changed and if brew hold time is expired
+    if (tens != m_shottime1 and now - m_brewHoldTimeStart > 5000) {
+        m_shottime1 = tens;
+        m_brewHoldTimeStart = 0;
+        m_display->drawRegion(digit_map[tens], NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    }
+    if (ones != m_shottime2 and now - m_brewHoldTimeStart > 5000) {
+        m_shottime2 = ones;
+        m_brewHoldTimeStart = 0;
+        m_display->drawRegion(digit_map[ones], NUMBER_FIELD6_X, NUMBER_FIELD6_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    }
+}
+
 void DisplayManager::displayHome() {
     // Draw thermometer icon
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
@@ -93,4 +130,13 @@ void DisplayManager::displayHome() {
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
+    // Draw cup icon
+    m_display->drawRegion(CUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
+    // Draw 2 digits as 0
+    m_display->drawRegion(NUMBER0, NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    m_display->drawRegion(NUMBER0, NUMBER_FIELD6_X, NUMBER_FIELD6_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+    // Store displayed digits
+    m_shottime1 = m_shottime2 = 0;
 }

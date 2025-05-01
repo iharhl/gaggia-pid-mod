@@ -8,6 +8,8 @@ case $1 in
   debug)
     echo "=== Size of the generated elf:"
     arm-none-eabi-size cmake-build-debug/main.elf
+    echo "=== Final size of the binary:"
+        stat -f "%N: %z bytes" cmake-build-debug/main.uf2
     echo "=== Flashing debug binary..."
     /Users/ihar/Developer/picotool/build/picotool load -f cmake-build-debug/main.uf2
     ;;

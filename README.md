@@ -22,6 +22,8 @@ and implement the mod from scratch all by myself.
    - [Other](#other)
    - [Helper tools](#helper-tools)
 3. [Results](#results)
+   - [Final assembly](#final-assembly)
+   - [Testing](#testing)
 4. [Resources](#resources)
 
 ## Hardware
@@ -181,17 +183,17 @@ Temperature measurements are obtained via the MAX31865 chip, which
 uses SPI for communication. Hence, the SPI driver class was implemented.
 Due to specific timing requirements of the MAX31865, slight modification
 were done to the native Pico SDK SPI calls. The details are available in 
-the implementation file — [spi.cpp](src/spi.cpp). Below are examples of
+the implementation file — [src/spi.cpp](src/spi.cpp). Below are examples of
 SPI read and write operations captured with a logic analyzer:
 
 <p>
-   <img src="/docs/pulseview-recording/spi-read.png" alt="SPI-read" width="380" height="170">
-   <img src="/docs/pulseview-recording/spi-write.png" alt="SPI-write" width="380" height="170">
+   <img src="/docs/recordings/spi-read.png" alt="SPI-read" width="380" height="170">
+   <img src="/docs/recordings/spi-write.png" alt="SPI-write" width="380" height="170">
 </p>
 
 The MAX31865 driver implements the chip-specific logic
 and utilizes the SPI class instance for communication. Details can be
-found here — [max31865.cpp](src/max31865.cpp)
+found here — [src/max31865.cpp](src/max31865.cpp)
 
 ### PID controller
 
@@ -204,7 +206,7 @@ important in such slow control systems).
 The PID compute method takes temperature setpoint and the measurement as
 inputs (error is calculated inside the class), and outputs the PWM
 percentage (duty cycle). Implementation can be found here —
-[pid.cpp](src/pid.cpp)
+[src/pid.cpp](src/pid.cpp)
 
 ### Relay control
 
@@ -212,7 +214,7 @@ The SSR is controlled via PWM, hence the logic is put into PWM class.
 The small problem here is that the water heating systems are quite slow
 leading to a long PWM period, too long to be controlled using Pico's
 dedicated timer peripherals. Therefore, the PWM logic was implemented
-via GPIO actions. Check details here - [pwm.cpp](src/pwm.cpp)
+via GPIO actions. Check details here - [src/pwm.cpp](src/pwm.cpp)
 
 > An interesting consideration here is how much power is delivered to the
 heating element during each PWM period. Here's what I mean: suppose
@@ -250,7 +252,7 @@ standards, some form of error handler was logical to implement. The
 solution is straightforward: it checks for a supplied input condition.
 If the condition is false and severe enough — disable the PWM and
 display the error code. Check implementation here —
-[error.cpp](src/error.cpp)
+[src/error.cpp](src/error.cpp)
 
 Some improvement would be nice to have, like managing the priorities of
 errors. Maybe something for the future...
@@ -263,15 +265,15 @@ communication protocol. I chose to structure the display logic in
 
 - The I2C driver class handles communication. The default timings in the
 Pico SDK were sufficient, so no modifications were necessary. Check 
-here — [i2c.cpp](src/i2c.cpp)
+here — [src/i2c.cpp](src/i2c.cpp)
 
 - The SSD1327 driver manages the logic for updating the display, such
 as filling or clearing the screen, drawing specific regions, and more.
-Implementation can be found here — [ssd1327.cpp](src/ssd1327.cpp)
+Implementation can be found here — [src/ssd1327.cpp](src/ssd1327.cpp)
 
 - The GUI driver oversees the display layout, including how quickly the
 display is updated and how individual numbers or letters correspond to
-an actual pixel data. Source file — [gui.cpp](src/gui.cpp)
+an actual pixel data. Source file — [src/gui.cpp](src/gui.cpp)
 
 ### Pump
 
@@ -280,7 +282,7 @@ is pressed, the normally closed (NC) relay remains inactive, allowing
 the water to flow. After the programmed time elapses, the relay opens,
 cutting the power to the pump. After the brew button is released by the
 user, the relay returns to the default closed position. For details, see
-— [pump.cpp](src/pump.cpp)
+— [src/pump.cpp](src/pump.cpp)
 
 This setup enables precise shot timing without the need for manual
 tracking of time. While I haven't set up the hardware myself, I've
@@ -304,16 +306,34 @@ computer. Check [src/myprint.h](src/myprint.h)
 
 ### Helper tools
 
-...
+To aid the development, I made several scripts which are stored in the
+[tools/](tools) folder.
+
+| Script          | Description                                                      |
+|-----------------|------------------------------------------------------------------|
+| flash.sh        | Flash the binary on the Pico and print its size                  |
+| listen.py       | Connect to serial port and record data transmitted from the Pico |
+| process-data.py | Parse and plot the temperature data recorded from serial         |
+| png-to-bytes.py | Convert png image into raw data to be displayed on the OLED      |
 
 
 ## Results
 
+### Final assembly
+
+Here is the circuit diagram of the final assembly:
+
+<img src="/docs/architecture/circuit.png" alt="circuit" width="600" height="340">
+
+
+### Testing
+
 ...
+
 
 ## Resources
 
-Code inspirations:
+Example code for drivers development:
 - https://github.com/adafruit/Adafruit_MAX31865/tree/master
 - https://github.com/adafruit/Adafruit_SSD1327/blob/master/Adafruit_SSD1327.cpp
 - https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GrayOLED.cpp

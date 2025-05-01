@@ -47,8 +47,14 @@ if(CPPCHECK)
     add_custom_command(
             TARGET main
             PRE_BUILD
-            COMMAND ${CPPCHECK} src/*.cpp --enable=all --quiet --inconclusive --std=c++17
-                --suppress=unusedFunction --suppress=missingIncludeSystem
+            COMMAND ${CPPCHECK} src/*.cpp
+                --enable=all
+                --quiet
+                --inconclusive
+                --check-level=exhaustive
+                --std=c++17
+                --suppress=unusedFunction
+                --suppress=missingIncludeSystem
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
 else()
