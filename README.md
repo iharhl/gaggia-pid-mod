@@ -296,9 +296,9 @@ rows. Each row has an indicator of some parameters. In this case:
 1. Thermometer icon and three digit fields to show the temperature.
 2. Status icon and two fields to show the status code. Error codes are 
 represented as a letter and a number. Additional codes are:
-   - OK for no errors and boiler reading for brewing.
-   - LO for boiler too cold for brewing.
-   - HI for boiler too hot for brewing.
+   - **OK** for no errors and boiler ready for brewing.
+   - **LO** for boiler too cold for brewing.
+   - **HI** for boiler too hot for brewing.
 3. Cup icon and two digit fields to show the shot timer. When the brew
 switch is pressed, the timer starts. After the button is released, the
 timer remains visible for 5 seconds before automatically resetting to
