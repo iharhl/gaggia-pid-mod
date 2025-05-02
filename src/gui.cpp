@@ -112,7 +112,7 @@ void DisplayManager::updateCupIcon(const bool brewing) {
     // needed, these are the conditions:
     // 1) Update icon once when brewing starts - switch is on, but timer still at zero.
     // 2) Reset icon if brew switch is off, but timer still up, just before the hold starts.
-    if (brewing and (m_shottime1 == 0 or m_shottime2 == 0))
+    if (brewing and m_shottime1 == 0 and m_shottime2 == 0)
         m_display->drawRegion(BREWCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
     else if (!brewing and (m_shottime1 != 0 or m_shottime2 != 0) and m_brewHoldTimeStart == 0)
         m_display->drawRegion(EMPTYCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);

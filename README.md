@@ -306,10 +306,14 @@ Implementation can be found here — [src/ssd1327.cpp](src/ssd1327.cpp)
 display is updated and how individual numbers or letters correspond to
 an actual pixel data. Source file — [src/gui.cpp](src/gui.cpp)
 
-Image below shows the layout of 128x128 display. It is split into three
-rows. Each row has an indicator of some parameters. In this case:
+Image below shows the layout of 128x128 display:
 
-1. Thermometer icon and three digit fields to show the temperature.
+<img src="/docs/display/display-layout.png" alt="disp" width="350" height="350">
+
+It is split into three rows. These rows are:
+
+1. Thermometer icon and three digit fields to show the temperature
+of the boiler.
 2. Status icon and two fields to show the status code. Error codes are 
 represented as a letter and a number. Additional codes are:
    - **OK** for no errors and boiler ready for brewing.
@@ -318,9 +322,18 @@ represented as a letter and a number. Additional codes are:
 3. Cup icon and two digit fields to show the shot timer. When the brew
 switch is pressed, the timer starts. After the button is released, the
 timer remains visible for 5 seconds before automatically resetting to
-zero.
+zero. The cup icon changes if the brew timer is active.
 
-<img src="/docs/display/display-layout.png" alt="disp" width="350" height="350">
+Images below show examples of what can be displayed.
+
+<p>
+<img src="/docs/display/display-ex-1.png" alt="disp-ex1" width="200" height="200">
+<img src="/docs/display/display-ex-2.png" alt="disp-ex2" width="200" height="200">
+</p>
+
+> All the icons, letters and numbers were drawn by me using an online
+> designer for pixel art — Pixilart. The original .pixil files, generated
+> png images, etc. are stored in [docs/display/](docs/display)
 
 ### Pump
 
