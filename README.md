@@ -139,6 +139,17 @@ required to draw power from the machine itself. I found a small module
 on AliExpress that outputs up to 600mA at 5V, which is more than
 sufficient for powering the Pico and a few peripherals.
 
+The converted turned out to be quite noisy, with voltage spikes
+occasionally reaching up to 400mV (based on the rough measurements I 
+took with an oscilloscope). The quality of my wiring likely contributed
+to the issue as well. While most components in the system tolerate this
+noise well, the MAX31865 is significantly more sensitive. As a result,
+it frequently reported faults during temperature readings. To address
+this, I added a pair of decoupling capacitors between VSYS and GND: a
+100µF electrolytic capacitor for bulk filtering and a 0.1µF ceramic
+capacitor for high-frequency noise suppression. This appears to have
+resolved the issue.
+
 <img src="/docs/hardware/acdc.jpg" alt="hw_ACDC" width="220" height="220">
 
 Second, we need a way to monitor the machine's temperature in real
@@ -262,15 +273,20 @@ explore.
 
 ### Error handler
 
-As this mod is not bulletproof and definitely does not meet industry
-standards, some form of error handler was logical to implement. The
-solution is straightforward: it checks for a supplied input condition.
-If the condition is false and severe enough — disable the PWM and
-display the error code. Check implementation here —
-[src/error.cpp](src/error.cpp)
+As this mod is not bulletproof, some form of error handler was logical
+to implement.
+The approach I took was straightforward: during a cycle, the system
+checks whether input conditions are met. If a condition fails and the
+associated error has a higher priority than previously stored error, the
+system stores the new error code. At the end of the loop, the following
+actions are taken:
 
-Some improvement would be nice to have, like managing the priorities of
-errors. Maybe something for the future...
+- Disable PWM output if the error is severe enough.
+
+- Display the current error code. If no error is present, reset the
+error status and re-enable the PWM.
+
+Check implementation here — [src/error.cpp](src/error.cpp)
 
 ### Display
 
