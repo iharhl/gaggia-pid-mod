@@ -9,12 +9,36 @@ ErrorHandler::ErrorHandler(PWMDriver* pwm, DisplayManager* gui) :
 void ErrorHandler::verify(const bool expression, const uint8_t context,
                             const uint8_t code) {
     if (!expression) {
-        // Disable PWM (only if not related to low/high temp reading)
-        if (context != ERROR_CONTEXT_TEMPHI and context != ERROR_CONTEXT_TEMPLO)
-            m_pwm->setMode(false);
-        // Update the status on the display
-        m_gui->updateStatus(context, code);
+        // Update current context and code if higher prio
+        if (context < m_context) {
+            m_context = context;
+            m_code = code;
+        }
+        // Update current code if same context but higher prio code
+        else if (context == m_context and code < m_code) {
+            m_code = code;
+        }
     } else {
-        m_gui->resetStatus(context, code);
+        // Clear the error if verification passed
+        if (context == m_context and code == m_code) {
+            m_context = ERROR_CONTEXT_NONE;
+            m_code = ERROR_CODE_NONE;
+        }
     }
 }
+
+void ErrorHandler::act() {
+    // Disable PWM if error reported (only if not related to low/high temp reading)
+    if (m_context != ERROR_CONTEXT_TEMPHI and m_context != ERROR_CONTEXT_TEMPLO and
+            m_context != ERROR_CONTEXT_NONE)
+        m_pwm->setMode(false);
+    // Update status on display
+    if (m_context != ERROR_CONTEXT_NONE and m_code != ERROR_CODE_NONE) {
+        m_gui->updateStatus(m_context, m_code);
+    } else {
+        // Reset status on display if error is cleared. Enable PWM.
+        m_gui->resetStatus();
+        m_pwm->setMode(true);
+    }
+}
+

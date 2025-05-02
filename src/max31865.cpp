@@ -7,8 +7,8 @@
 
 
 MAX31865::MAX31865(SPIDevice* spi_device,
-    const max31865_wire_num_e wires,
-    const max31865_filter_fq_e fq) : m_spidevice(spi_device)
+        const max31865_wire_num_e wires,
+        const max31865_filter_fq_e fq) : m_spidevice(spi_device)
 {
     setWires(wires);
     enableBias(false);
@@ -104,7 +104,18 @@ uint8_t MAX31865::readFault(const max31865_fault_cycle_e fault_cycle) {
                 break;
         }
     }
-    return readRegisterByte(MAX31865_FAULTSTAT_REG);
+    // Read the fault value from fault register
+    const uint8_t fault = readRegisterByte(MAX31865_FAULTSTAT_REG);
+    // Convert the value into error code for the display
+    switch (fault) {
+        case MAX31865_FAULT_OVUV: return 0;
+        case MAX31865_FAULT_RTDINLOW: return 1;
+        case MAX31865_FAULT_REFINHIGH: return 2;
+        case MAX31865_FAULT_REFINLOW: return 3;
+        case MAX31865_FAULT_LOWTHRESH: return 4;
+        case MAX31865_FAULT_HIGHTHRESH: return 5;
+        default: return 0xFF;
+    }
 }
 
 void MAX31865::configureRTD(const float RTDnominal, const float refResistor) {
@@ -180,10 +191,8 @@ float MAX31865::calculateTemp(const uint16_t RTDraw) const {
     const float temp = (std::sqrt(Z2 + Z3 * R) + Z1) / Z4;
 
     // The calculation for < 0 degC is slightly different but as it is not expected
-    // for temp to drop this low, the calculation was removed.
-    if (temp < 0) {
-        return 0; // todo: error
-    }
+    // for temperature to drop this low, the calculation was removed.
+    if (temp < 0) { return 0; }
 
     return temp;
 }

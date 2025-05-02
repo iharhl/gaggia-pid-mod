@@ -54,9 +54,9 @@ void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
     m_status2 = code;
 }
 
-void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
-    // Return if status to be reset is not displayed
-    if (context != m_status1 or code != m_status2)
+void DisplayManager::resetStatus() {
+    // Return if status OK
+    if (m_status1 == 0xFF and m_status2 == 0xFF)
         return;
     // Update not faster than once in two second
     const uint64_t now = Clock::now_ms();
@@ -64,9 +64,9 @@ void DisplayManager::resetStatus(const uint8_t context, const uint8_t code) {
         return;
     m_prevStatusUpdateTime = now;
     // Reset status to OK
-    m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
+    m_display->drawRegion(NUMBER_0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
-    m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+    m_display->drawRegion(LETTER_K, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
@@ -109,29 +109,29 @@ void DisplayManager::displayHome() {
     // Draw thermometer icon
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
     // Draw 3 digits as 0
-    m_display->drawRegion(NUMBER0, NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
+    m_display->drawRegion(NUMBER_0, NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    m_display->drawRegion(NUMBER0, NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
+    m_display->drawRegion(NUMBER_0, NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    m_display->drawRegion(NUMBER0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
+    m_display->drawRegion(NUMBER_0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed digits
     m_temp1 = m_temp2 = m_temp3 = 0;
     // Draw status icon
     m_display->drawRegion(STATUS, ICON2_X, ICON2_Y, ICON2_WIDTH, ICON2_HEIGHT);
     // Draw OK status
-    m_display->drawRegion(NUMBER0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
+    m_display->drawRegion(NUMBER_0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
             TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
-    m_display->drawRegion(LETTERK, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+    m_display->drawRegion(LETTER_K, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
     // Draw cup icon
     m_display->drawRegion(CUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
     // Draw 2 digits as 0
-    m_display->drawRegion(NUMBER0, NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
+    m_display->drawRegion(NUMBER_0, NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
-    m_display->drawRegion(NUMBER0, NUMBER_FIELD6_X, NUMBER_FIELD6_Y,
+    m_display->drawRegion(NUMBER_0, NUMBER_FIELD6_X, NUMBER_FIELD6_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed digits
     m_shottime1 = m_shottime2 = 0;

@@ -9,10 +9,9 @@
 
 typedef enum error_context {
     ERROR_CONTEXT_TEMPSENS = 0,
+    ERROR_CONTEXT_COMM,
     ERROR_CONTEXT_TEMPHI,
     ERROR_CONTEXT_TEMPLO,
-    ERROR_CONTEXT_COMM,
-    ERROR_CONTEXT_DISPLAY,
     ERROR_CONTEXT_NONE = 0xFF,
 } error_context_e;
 
@@ -38,6 +37,7 @@ public:
     ~ErrorHandler() = default;
 
     void verify(bool expression, uint8_t context, uint8_t code);
+    void act();
 
 private:
     PWMDriver* m_pwm;
@@ -45,7 +45,6 @@ private:
 
     uint8_t m_context = ERROR_CONTEXT_NONE;
     uint8_t m_code = ERROR_CODE_NONE;
-
 };
 
 

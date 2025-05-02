@@ -27,6 +27,7 @@
 
 
 typedef enum max31865_fault_code {
+    MAX31865_FAULT_NONE = 0x00,
     MAX31865_FAULT_OVUV = 0x04,
     MAX31865_FAULT_RTDINLOW = 0x08,
     MAX31865_FAULT_REFINHIGH = 0x10,
@@ -52,8 +53,7 @@ typedef enum max31865_filter_fq {
 } max31865_filter_fq_e;
 
 typedef enum max31865_fault_cycle {
-    MAX31865_FAULT_NONE = 0,
-    MAX31865_FAULT_AUTO,
+    MAX31865_FAULT_AUTO = 1,
     MAX31865_FAULT_MANUAL_RUN,
     MAX31865_FAULT_MANUAL_FINISH
 } max31865_fault_cycle_e;

@@ -68,14 +68,14 @@ int main() {
     float temp = temp_sensor.readTemperature();
 
     // Check if MAX31865 reports faults in temp sensing
-    const uint8_t fault = temp_sensor.readFault();
-    error_handler.verify(!fault, ERROR_CONTEXT_TEMPSENS, ERROR_CODE_0);
-    if (fault) {
+    const uint8_t fault_code = temp_sensor.readFault();
+    error_handler.verify(fault_code == 0xFF, ERROR_CONTEXT_TEMPSENS, fault_code);
+    if (fault_code != 0xFF) {
       temp = 0; // set to 0 to avoid triggering overheating error
       temp_sensor.clearFault();
     } else {
-      // Check if temp is not too low. Do it only if no fault report
-      // otherwise it's set to 0 anyway.
+      // Check if temperature is not too low.
+      // Do it only if no fault report otherwise it's set to 0 anyway.
       error_handler.verify(temp > BREW_TEMP_SETPOINT - BREW_TEMP_HYSTERESIS,
         ERROR_CONTEXT_TEMPLO, ERROR_CODE_0);
     }
@@ -87,20 +87,23 @@ int main() {
     gui.updateTemperature(static_cast<uint8_t>(temp));
     gui.updateShotTime(brewtime);
 
+    // Check for errors in I2C and SPI communication
+    error_handler.verify(!i2c_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_0);
+    error_handler.verify(!spi_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_1);
+    i2c_device.err = spi_device.err = 0;
+
     // Check if temperature is not too high
     error_handler.verify(temp < BREW_TEMP_SETPOINT + BREW_TEMP_HYSTERESIS,
       ERROR_CONTEXT_TEMPHI, ERROR_CODE_I);
+
+    // Display error if present and disable PWM if needed
+    error_handler.act();
 
     // Compute PWM duty cycle
     const float pwm_duty_cycle = pid.compute(BREW_TEMP_SETPOINT, temp);
 
     // Drive the SSR (based on the PID output)
     pwm.drivePin(pwm_duty_cycle);
-
-    // Check for errors in I2C and SPI communication
-    error_handler.verify(!i2c_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_0);
-    error_handler.verify(!spi_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_1);
-    i2c_device.err = spi_device.err = 0;
 
     // Sleep to make a whole loop execute once in ~100ms (can be removed)
     sleep_ms(23);

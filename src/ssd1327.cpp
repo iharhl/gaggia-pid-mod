@@ -48,8 +48,8 @@ void SSD1327::turnOffAllPixels() {
     // Write pixel data to the display
     const unsigned size = m_sizeX * m_sizeY / 2;
     // Allocate memory for size elements and zero-initialize the memory.
-    // Need to dynamically allocate as the buffer size is not now during compile-time.
-    // It is not a good idea to allocate the variable-size buffer on the stack.
+    // Need to dynamically allocate as the buffer size is not known during compile-time.
+    // It is a bad idea to allocate the variable-size buffer on the stack.
     // Could use vector here, but it blows up the size of the binary.
     auto* data = static_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
     // Handle allocation failure
@@ -89,8 +89,8 @@ void SSD1327::sendCommandList(const uint8_t* cmd_list, const unsigned len) {
 
 void SSD1327::sendData(const uint8_t* data, const unsigned len) {
     // Allocate memory for len + 1 elements.
-    // Need to dynamically allocate as the buffer size is not now during compile-time, and it is
-    // not a good idea to allocate the variable-size buffer on the stack.
+    // Need to dynamically allocate as the buffer size is not known during compile-time.
+    // It is a bad idea to allocate the variable-size buffer on the stack.
     // Could use vector here, but it blows up the size of the binary.
     auto* buff = static_cast<uint8_t*>(malloc((len + 1) * sizeof(uint8_t)));
     // Handle memory allocation failure

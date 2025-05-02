@@ -5,7 +5,7 @@
 
 template <typename T>
 void printdebug(const char* str, T value) {
-    printf("%s: %s\n", str, std::to_string(value).c_str());
+    printf("%s: %s | ", str, std::to_string(value).c_str());
 }
 
 template <typename T>
