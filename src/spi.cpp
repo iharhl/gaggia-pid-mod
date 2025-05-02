@@ -28,7 +28,19 @@ SPIDevice::SPIDevice(const uint8_t cspin, const uint8_t sckpin,
 /* Reset spi driver instance */
 void SPIDevice::reset() {
     configure();
-    err = 0;
+}
+
+bool SPIDevice::isConnected() {
+    // Crude implementation but basically the default value in the
+    // Pico's FIFO buffer is 0xFF. If I request the spi device for the
+    // data 10 times, and it reads as 0xFF every time, I assume there
+    // is no device connected.
+    for (unsigned i = 0; i < 10; i++) {
+        if (write8ThenRead8(0x00) != 0xFF)
+            return true;
+        sleep_us(80); // arbitrary delay between transfers
+    }
+    return false;
 }
 
 uint8_t SPIDevice::read8() {
@@ -40,14 +52,11 @@ uint8_t SPIDevice::read8() {
     sleep_us(2);
     // Call read from sdk
     uint8_t buff; // 1 byte buffer
-    const int ret = spi_read_blocking(m_spi, 0, &buff, 1);
+    spi_read_blocking(m_spi, 0, &buff, 1);
     // Again, wait before putting CS pin back to high otherwise it'll be
     // a bit too fast. Again, this results in a more clear transition.
     sleep_us(2);
     gpio_put(m_cspin, true);
-    // Check that the amount of bytes communicated matches
-    if (ret != 1)
-        err++;
 
     return buff;
 }
@@ -55,43 +64,35 @@ uint8_t SPIDevice::read8() {
 void SPIDevice::read8(uint8_t* buff, const unsigned len) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    const int ret = spi_read_blocking(m_spi, 0, buff, len);
+    spi_read_blocking(m_spi, 0, buff, len);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret != 1)
-        err++;
 }
 
 void SPIDevice::write8(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    const int ret = spi_write_blocking(m_spi, &data, 1);
+    spi_write_blocking(m_spi, &data, 1);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret != 1)
-        err++;
 }
 
 void SPIDevice::write8(const uint8_t *data, const unsigned len) {
     gpio_put(m_cspin, false);
     sleep_us(2);
-    const int ret = spi_write_blocking(m_spi, data, len);
+    spi_write_blocking(m_spi, data, len);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret != static_cast<int>(len))
-        err++;
 }
 
 uint8_t SPIDevice::write8ThenRead8(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
     uint8_t buff; // 1 byte buffer
-    const int ret1 = spi_write_blocking(m_spi, &data, 1);
-    const int ret2 = spi_read_blocking(m_spi, 0, &buff, 1);
+    spi_write_blocking(m_spi, &data, 1);
+    spi_read_blocking(m_spi, 0, &buff, 1);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret1 != 1 and ret2 != 1)
-        err++;
     return buff;
 }
 
@@ -99,12 +100,10 @@ uint16_t SPIDevice::write8ThenRead16(const uint8_t data) {
     gpio_put(m_cspin, false);
     sleep_us(2);
     uint8_t buff[2]; // 2 byte buffer
-    const int ret1 = spi_write_blocking(m_spi, &data, 1);
-    const int ret2 = spi_read_blocking(m_spi, 0, buff, 2);
+    spi_write_blocking(m_spi, &data, 1);
+    spi_read_blocking(m_spi, 0, buff, 2);
     sleep_us(2);
     gpio_put(m_cspin, true);
-    if (ret1 != 1 and ret2 != 2)
-        err++;
     return buff[1] + buff[0] * (1<<8);
 }
 

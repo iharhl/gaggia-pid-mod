@@ -78,6 +78,8 @@ void DisplayManager::updateShotTime(const uint8_t time) {
     if (now - m_prevShotUpdateTime < 950)
         return;
     m_prevShotUpdateTime = now;
+    // Update cup icon if brewing
+    updateCupIcon(static_cast<bool>(time));
     // Handle time > 99 sec
     uint8_t tens = 9, ones = 9;
     if (time <= 99) {
@@ -105,6 +107,17 @@ void DisplayManager::updateShotTime(const uint8_t time) {
     }
 }
 
+void DisplayManager::updateCupIcon(const bool brewing) {
+    // To prevent continuous writes to the display, updating icon only once when
+    // needed, these are the conditions:
+    // 1) Update icon once when brewing starts - switch is on, but timer still at zero.
+    // 2) Reset icon if brew switch is off, but timer still up, just before the hold starts.
+    if (brewing and (m_shottime1 == 0 or m_shottime2 == 0))
+        m_display->drawRegion(BREWCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
+    else if (!brewing and (m_shottime1 != 0 or m_shottime2 != 0) and m_brewHoldTimeStart == 0)
+        m_display->drawRegion(EMPTYCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
+}
+
 void DisplayManager::displayHome() {
     // Draw thermometer icon
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
@@ -127,7 +140,7 @@ void DisplayManager::displayHome() {
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
     // Draw cup icon
-    m_display->drawRegion(CUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
+    m_display->drawRegion(EMPTYCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
     // Draw 2 digits as 0
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
             NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);

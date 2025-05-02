@@ -11,6 +11,9 @@
 
 #include <pico/stdlib.h>
 
+#include "clock.h"
+#include "myprint.h"
+
 
 /* Brew control configuration defines */
 #define PWM_CYCLE_MS            2000    // pwm cycle length in ms
@@ -50,7 +53,7 @@ int main() {
   DisplayManager gui(&display);
 
   // Set up temperature PID controller
-  PIDController pid(10, 0.7, 0.1); // increase D gain?
+  PIDController pid(10, 0.7, 0.01); // increase D gain?
   pid.enableAntiWindup(0, 100);  // output is pwm duty cycle [%]
 
   // Set up PWM signal to the solid-state relay (SSR)
@@ -66,12 +69,15 @@ int main() {
   while(true) {
     // Get temperature reading from MAX31865
     float temp = temp_sensor.readTemperature();
+    printfloat(temp);
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault_code = temp_sensor.readFault();
     error_handler.verify(fault_code == 0xFF, ERROR_CONTEXT_TEMPSENS, fault_code);
-    if (fault_code != 0xFF) {
-      temp = 0; // set to 0 to avoid triggering overheating error
+
+    // Handle faults in the temperature reading
+    if (fault_code != 0xFF or temp < 0.0 or temp > 255.0) {
+      temp = 0.0;
       temp_sensor.clearFault();
     } else {
       // Check if temperature is not too low.
@@ -88,9 +94,8 @@ int main() {
     gui.updateShotTime(brewtime);
 
     // Check for errors in I2C and SPI communication
-    error_handler.verify(!i2c_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_0);
-    error_handler.verify(!spi_device.err, ERROR_CONTEXT_COMM, ERROR_CODE_1);
-    i2c_device.err = spi_device.err = 0;
+    error_handler.verify(i2c_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_0);
+    error_handler.verify(spi_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_1);
 
     // Check if temperature is not too high
     error_handler.verify(temp < BREW_TEMP_SETPOINT + BREW_TEMP_HYSTERESIS,

@@ -410,9 +410,10 @@ overshoot is reduced.
 <img src="/docs/tests/shot-pull.png" alt="shot_pull" width="300" height="225">
 </p>
 
-Overall, the control system performs well for real-world use and
-outperforms the stock configuration. While the PID can definitely be
-tuned further, the current performance is satisfactory to me.
+Overall, the controller is stable and the control system performs
+adequately for real-world use and outperforms the stock configuration.
+While the PID can definitely be tuned further, the current performance is
+satisfactory to me.
 
 
 ## Resources

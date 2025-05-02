@@ -1,5 +1,4 @@
 #include "max31865.h"
-#include "myprint.h"
 
 #include <cmath>
 #include <pico/time.h>

@@ -14,6 +14,7 @@ public:
     ~SPIDevice() = default;
 
     void reset();
+    bool isConnected();
 
     [[nodiscard]] uint8_t read8();
     void read8(uint8_t* buff, unsigned len);  // read multiple bytes
@@ -21,8 +22,6 @@ public:
     void write8(const uint8_t* data, unsigned len);  // write multiple bytes
     [[nodiscard]] uint8_t write8ThenRead8(uint8_t data);
     [[nodiscard]] uint16_t write8ThenRead16(uint8_t data);
-
-    unsigned err = 0;
 
 private:
     void configure();
