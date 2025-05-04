@@ -26,12 +26,12 @@ void I2CDevice::reset() {
 uint8_t I2CDevice::read8() {
     uint8_t buff;
     const int ret = i2c_read_blocking(m_i2c, m_addr, &buff, 1, false);
-    if (ret < 0)
+    if (ret != 1)
         m_err++;
     return buff;
 }
 
-void I2CDevice::read8(uint8_t *buff, unsigned len) {
+void I2CDevice::read8(uint8_t *buff, const unsigned len) {
     const int ret = i2c_read_blocking(m_i2c, m_addr, buff, len, false);
     if (ret != static_cast<int>(len))
         m_err++;
@@ -39,7 +39,7 @@ void I2CDevice::read8(uint8_t *buff, unsigned len) {
 
 void I2CDevice::write8(const uint8_t data, const bool nostop) {
     const int ret = i2c_write_blocking(m_i2c, m_addr, &data, 1, nostop);
-    if (ret < 0)
+    if (ret != 1)
         m_err++;
 }
 

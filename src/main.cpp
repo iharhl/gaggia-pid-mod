@@ -16,7 +16,7 @@
 
 
 /* Brew control configuration defines */
-#define PWM_CYCLE_MS            2000    // pwm cycle length in ms
+#define PWM_CYCLE_MS            4000    // pwm cycle length in ms
 #define BREW_TEMP_SETPOINT      107
 #define BREW_TEMP_HYSTERESIS    2       // for LO/HI status display
 /* SPI pin configuration defines */
@@ -53,12 +53,11 @@ int main() {
   DisplayManager gui(&display);
 
   // Set up temperature PID controller
-  PIDController pid(10, 0.7, 0.01); // increase D gain?
-  pid.enableAntiWindup(0, 100);  // output is pwm duty cycle [%]
+  PIDController pid(9, 0.2, 16);
+  pid.enableAntiWindup(-90, 90);  // output is pwm duty cycle [%]
 
   // Set up PWM signal to the solid-state relay (SSR)
   PWMDriver pwm(GPIO_SSR_PIN, PWM_CYCLE_MS);
-  pwm.setMode(true);
 
   // Set up pump class
   Pump pump(GPIO_BREW_SWITCH_PIN);
@@ -69,7 +68,11 @@ int main() {
   while(true) {
     // Get temperature reading from MAX31865
     float temp = temp_sensor.readTemperature();
-    printfloat(temp);
+
+    // TODO: remove
+    // printFloat(temp);
+    // printForGraph("T", temp);
+    // printForGraph("C", Clock::now_ms());
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault_code = temp_sensor.readFault();
@@ -89,10 +92,6 @@ int main() {
     // Update pump state based on the brew switch
     const uint8_t brewtime = pump.updateState();
 
-    // Update displayed temperature and brew time
-    gui.updateTemperature(static_cast<uint8_t>(temp));
-    gui.updateShotTime(brewtime);
-
     // Check for errors in I2C and SPI communication
     error_handler.verify(i2c_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_0);
     error_handler.verify(spi_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_1);
@@ -109,6 +108,10 @@ int main() {
 
     // Drive the SSR (based on the PID output)
     pwm.drivePin(pwm_duty_cycle);
+
+    // Update displayed temperature and brew time
+    gui.updateTemperature(static_cast<uint8_t>(temp));
+    gui.updateShotTime(brewtime);
 
     // Sleep to make a whole loop execute once in ~100ms (can be removed)
     sleep_ms(23);

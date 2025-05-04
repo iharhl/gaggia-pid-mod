@@ -242,6 +242,8 @@ leading to a long PWM period, too long to be controlled using Pico's
 dedicated timer peripherals. Therefore, the PWM logic was implemented
 via GPIO actions. Check details here - [src/pwm.cpp](src/pwm.cpp)
 
+<small>
+
 > An interesting consideration here is how much power is delivered to the
 heating element during each PWM period. Here's what I mean: suppose
 the PID controller outputs a 10% duty cycle. Depending on the length
@@ -270,6 +272,8 @@ electrical nuances. That said, these details are not critical for this
 particular system in my opinion, especially since the SSR I chose
 features zero-crossing control. Still, it's an interesting topic to
 explore.
+
+</small>
 
 ### Error handler
 
@@ -331,9 +335,13 @@ Images below show examples of what can be displayed.
 <img src="/docs/display/display-ex-2.png" alt="disp-ex2" width="200" height="200">
 </p>
 
+<small>
+
 > All the icons, letters and numbers were drawn by me using an online
 > designer for pixel art — Pixilart. The original .pixil files, generated
 > png images, etc. are stored in [docs/display/](docs/display)
+
+</small>
 
 ### Pump
 

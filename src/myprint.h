@@ -4,12 +4,17 @@
 #include <string>
 
 template <typename T>
-void printdebug(const char* str, T value) {
+void printForGraph(const char* str, T value) {
+    printf("%s: %6.2f | ", str, static_cast<float>(value));
+}
+
+template <typename T>
+void printDebug(const char* str, T value) {
     printf("%s: %s | ", str, std::to_string(value).c_str());
 }
 
 template <typename T>
-void printfloat(T value) {
+void printFloat(T value) {
     // Format - 3 digits before comma, 2 digits after
     printf("%3.2f ", static_cast<float>(value));
 }

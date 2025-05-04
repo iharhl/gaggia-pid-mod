@@ -20,7 +20,8 @@ public:
     void drivePin(float pwm_duty_cycle);
 
 private:
-    unsigned m_Pin, m_Period;
+    unsigned m_Pin;
+    uint64_t m_Period;
     bool m_Enabled = false;
     uint64_t m_PWMCycleStartTime = 0;
 };

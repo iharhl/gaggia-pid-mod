@@ -14,6 +14,7 @@ private:
     float m_previousOutput = 0, m_previousError = 0, m_integral = 0;
     bool m_antiWindupEnabled = false;
     float m_minLimit = 0, m_maxLimit = 100;
+    float m_minIntegralLimit = 0, m_maxIntegralLimit = 100;
 public:
     float compute(float setpoint, float measurement);
     void enableAntiWindup(float min, float max);
