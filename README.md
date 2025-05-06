@@ -30,6 +30,7 @@ quality.
 3. [Results](#results)
    - [Final assembly](#final-assembly)
    - [Testing](#testing)
+   - [Taste Test](#taste-test)
 4. [Resources](#resources)
 
 
@@ -74,10 +75,9 @@ configure the device, and it provides accurate digital temperature
 readings.
 
 Adafruit offers high-quality breakout boards based on the MAX31865
-chip, along with comprehensive documentation and example code. See an
-example of such a board in the image below. The sensor itself I found
-on AliExpress with integrated M4 screw and of 3-wire type. See an
-example in the second image below.
+chip, along with comprehensive documentation and example code. The sensor
+itself I found on AliExpress with integrated M4 screw and of 3-wire type.
+See examples of MAX31865 and RTD sensor below.
 
 <p>
 <img src="/docs/hardware/max31865_board.jpg" alt="hw_MAX31865" width="300" height="225">
@@ -88,8 +88,7 @@ example in the second image below.
 
 With the thermostat removed, an alternative method is needed to switch
 the power on and off. A mechanical relay is the most straightforward
-option and would technically suffice, especially since high-speed
-switching is not a hard requirement.
+option and probably could suffice.
 
 However, solid-state relays (SSRs) are often preferred in high-power
 scenarios for several practical reasons. While both options are capable
@@ -102,8 +101,8 @@ of handling the load, SSRs offer significant advantages:
 mechanical wear and increases operational longevity, particularly under
 frequent switching conditions.
 
-- Faster switching: while not essential in this case, the ability of
-SSRs to switch much faster than mechanical relays.
+- Faster switching: the ability of SSRs to switch much faster than
+mechanical relays.
 
 - Reduced electrical noise: SSRs can be zero-crossing triggered, 
 minimizing electrical noise and transients during switching.
@@ -227,20 +226,21 @@ Not much to explain here — a PID temperature controller logic is
 encapsulated within the PID class. The implementation is minimal, only
 includes basic P-I-D action, no filtering, and includes integral
 anti-windup to prevent the accumulation of integral action (which is 
-important in such slow control systems). 
+important in such slow control systems).
 
 The PID compute method takes temperature setpoint and the measurement as
-inputs (error is calculated inside the class), and outputs the PWM
-percentage (duty cycle). Implementation can be found here —
+inputs (error is calculated inside), and outputs the PWM percentage (duty
+cycle). Implementation can be found here —
 [src/pid.cpp](src/pid.cpp)
 
 ### Relay control
 
 The SSR is controlled via PWM, hence the logic is put into PWM class.
-The small problem here is that the water heating systems are quite slow
+The small problem here is that the control systems is quite slow
 leading to a long PWM period, too long to be controlled using Pico's
-dedicated timer peripherals. Therefore, the PWM logic was implemented
-via GPIO actions. Check details here - [src/pwm.cpp](src/pwm.cpp)
+dedicated PWM peripherals. Therefore, the PWM logic was implemented
+via combination of timer peripheral and GPIO actions. Check details here —
+[src/pwm.cpp](src/pwm.cpp)
 
 <small>
 
@@ -400,41 +400,77 @@ Here is the circuit diagram of the final assembly:
 ### Testing
 
 To calibrate the PID, I began by recording performance data. The
-graphs below show the results after several calibration attempts.
+graphs below show the final results I was able to achieve after some
+calibration.
 
 The boiler heat-up is quite smooth, reaching operating temperature in
-about 90 seconds. There's a slight initial overshoot of approximately
-1°C, which quickly settles.
+about 100 seconds. The system seems slightly overdamped, requiring some
+effort to reach the final few degrees. Once at temperature, it oscillates
+with a ±1°C deviation for a short while. Given the system's slow thermal
+response, I consider this level of accuracy quite acceptable. By around
+the 4-minute mark, the error narrows to about ±0.5°C and continues to
+improve over time.
 
-I also tested how well my modification works with the stock steam
-control. As expected, once the boiler was heated, I reset the steam
-switch, and the temperature gradually decreased. At around 150 seconds,
-I activated the brew button to circulate water and help cool the boiler,
-then reset it after about 20 seconds.
-
-The PID controller managed this transition adequately. The first
-temperature peak reached 110°C, quite an overshoot, but the second
-peak dropped to an acceptable 108°C.
+The result of a shot pull test is also shown below. During brewing, the
+water temperature drops by roughly 3°C. After, it overshoots by about
+1.5°C but stabilizes relatively quickly, with full recovery achieved
+within 1 minute.
 
 <p>
 <img src="/docs/tests/heatup.png" alt="init_heat" width="300" height="225">
-<img src="/docs/tests/steam-heatup-rec.png" alt="steam_rec" width="300" height="225">
-</p>
-
-Recordings of water dump and shot pull tests are shown below. Since
-water flow is more restricted during an actual shot, the system performs
-is better than during the water dump: temperature dip is smaller, and
-overshoot is reduced.
-
-<p>
-<img src="/docs/tests/water-dump.png" alt="water_dump" width="300" height="225">
 <img src="/docs/tests/shot-pull.png" alt="shot_pull" width="300" height="225">
 </p>
 
-Overall, the controller is stable and the control system performs
-adequately for real-world use and outperforms the stock configuration.
-While the PID can definitely be tuned further, the current performance is
-satisfactory to me.
+Additionally, I tested how well my modification works with the stock
+steam control. As expected, once the boiler was heated, I reset the
+steam switch, and the temperature gradually decreased. After such a
+prolonged (passive) cooling, the integral term accumulated significantly,
+resulting in an initial temperature undershoot (visible at around the
+650-second mark). However, within about a minute, the controller
+compensated and returned the system to the setpoint.
+
+While this is not a realistic usage scenario — doubt anyone would really
+wait 10 minutes for the boiler to cool passively — I conducted a more
+practical test next. After reaching steam temperature, I manually dropped
+the temperature by flushing water. This caused the temperature to fall
+below the setpoint, but the controller responded quickly. Two factors
+contributed to the improved response: first, the integral term had less
+time to accumulate error; second, the steep drop triggered a strong
+derivative response. In this test, the system recovered rapidly and
+stabilized efficiently.
+
+<p>
+<img src="/docs/tests/steam-rec-passive.png" alt="steam_act" width="300" height="225">
+<img src="/docs/tests/steam-rec-active.png" alt="steam_pas" width="300" height="225">
+</p>
+
+Overall, the controller is stable, and the system's performance is more
+than adequate for real-world use — substantially better than the stock
+configuration. Although further PID tuning is possible, the current
+setup delivers great results.
+
+
+### Taste test
+
+Finally, let's talk about the coffee itself. Being honest, I am not a big
+coffee enthusiast. Even with specialty beans, the stock machine produced
+only decent results, definitely better than your average non-specialty
+cafe, but still nothing I would drink without milk. The espresso often
+leaned too acidic, and not in a pleasant way. It was also easy to pull
+a bad shot (skill issue, gonna admit).
+
+So, during a final shot pull test I was not expecting much. My goal was
+to collect performance data, not enjoy the coffee. The setup was far
+from ideal — electronics were hanging out of the machine, the steam tube
+was not securely attached, and the boiler was completely unscrewed. I
+did not think this shot would be worth tasting.
+
+But I was honestly surprised. For the first time, I finally was able to
+taste those flavor "notes" that coffee influencers always talk about.
+The acidity was still present, but now it felt balanced — bright, not
+sharp — allowing more complex flavors to emerge.
+
+Seems like this project was worth it after all.
 
 
 ## Resources

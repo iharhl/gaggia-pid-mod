@@ -38,10 +38,10 @@ target_link_libraries(main
         hardware_i2c
 )
 
-# Create map/bin/hex file etc.
+# Create map/bin/hex files etc.
 pico_add_extra_outputs(main)
 
-# Enable all warning
+# Enable all warnings
 target_compile_options(main
         PRIVATE
         -Wall

@@ -41,7 +41,7 @@ void PWMDriver::drivePin(const float pwm_duty_cycle) {
         if (static_cast<unsigned>(pwm_duty_cycle) < 100) {
             add_alarm_in_ms(
                 static_cast<uint32_t>(pwm_active_ms),
-                []([[maybe_unused]] alarm_id_t id, void *user_data) -> int64_t {
+                [](__unused alarm_id_t id, void* user_data) -> int64_t {
                     gpio_put(reinterpret_cast<unsigned>(user_data), false);  // turn off when alarm triggers
                     return 0;  // no repeat
                 },

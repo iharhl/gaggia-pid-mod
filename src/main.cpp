@@ -9,15 +9,13 @@
 #include "pump.h"
 #include "error.h"
 
+#include <cmath>
 #include <pico/stdlib.h>
-
-#include "clock.h"
-#include "myprint.h"
 
 
 /* Brew control configuration defines */
 #define PWM_CYCLE_MS            4000    // pwm cycle length in ms
-#define BREW_TEMP_SETPOINT      107
+#define BREW_TEMP_SETPOINT      105
 #define BREW_TEMP_HYSTERESIS    2       // for LO/HI status display
 /* SPI pin configuration defines */
 #define SPI_CS_PIN              5
@@ -52,9 +50,9 @@ int main() {
   SSD1327 display(&i2c_device, 128, 128);
   DisplayManager gui(&display);
 
-  // Set up temperature PID controller
-  PIDController pid(9, 0.2, 16);
-  pid.enableAntiWindup(-90, 90);  // output is pwm duty cycle [%]
+  // Set up temperature PID controller (output is pwm duty cycle)
+  PIDController pid(9.0, 0.4, 16.0);
+  pid.enableAntiWindup(-80.0, 80.0);
 
   // Set up PWM signal to the solid-state relay (SSR)
   PWMDriver pwm(GPIO_SSR_PIN, PWM_CYCLE_MS);
@@ -68,11 +66,6 @@ int main() {
   while(true) {
     // Get temperature reading from MAX31865
     float temp = temp_sensor.readTemperature();
-
-    // TODO: remove
-    // printFloat(temp);
-    // printForGraph("T", temp);
-    // printForGraph("C", Clock::now_ms());
 
     // Check if MAX31865 reports faults in temp sensing
     const uint8_t fault_code = temp_sensor.readFault();
@@ -89,12 +82,11 @@ int main() {
         ERROR_CONTEXT_TEMPLO, ERROR_CODE_0);
     }
 
+    // Check for errors in SPI communication
+    error_handler.verify(spi_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_1);
+
     // Update pump state based on the brew switch
     const uint8_t brewtime = pump.updateState();
-
-    // Check for errors in I2C and SPI communication
-    error_handler.verify(i2c_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_0);
-    error_handler.verify(spi_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_1);
 
     // Check if temperature is not too high
     error_handler.verify(temp < BREW_TEMP_SETPOINT + BREW_TEMP_HYSTERESIS,
@@ -110,8 +102,11 @@ int main() {
     pwm.drivePin(pwm_duty_cycle);
 
     // Update displayed temperature and brew time
-    gui.updateTemperature(static_cast<uint8_t>(temp));
+    gui.updateTemperature(static_cast<uint8_t>(roundf(temp)));
     gui.updateShotTime(brewtime);
+
+    // Check for errors in I2C communication
+    error_handler.verify(i2c_device.isConnected(), ERROR_CONTEXT_COMM, ERROR_CODE_0);
 
     // Sleep to make a whole loop execute once in ~100ms (can be removed)
     sleep_ms(23);

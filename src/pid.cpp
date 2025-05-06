@@ -38,12 +38,6 @@ float PIDController::compute(const float setpoint, const float measurement) {
     m_previousError = error;
     m_previousOutput = output;
 
-    // TODO: remove
-    // printForGraph("P", m_Kp * error);
-    // printForGraph("I", m_Ki * m_integral);
-    // printForGraph("D", m_Kd * derivative);
-    // printForGraph("O", output);
-
     return clipped_output;
 }
 
