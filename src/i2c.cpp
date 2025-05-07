@@ -60,7 +60,7 @@ void I2CDevice::configure() {
     gpio_pull_up(m_sclpin);
 }
 
-bool I2CDevice::isConnected() {
+bool I2CDevice::checkErrors() {
     if (m_err) {
         m_err = 0; // reset error count
         return false;

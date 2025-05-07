@@ -105,7 +105,7 @@ uint8_t MAX31865::readFault(const max31865_fault_cycle_e fault_cycle) {
     }
     // Read the fault value from fault register
     const uint8_t fault = readRegisterByte(MAX31865_FAULTSTAT_REG);
-    // Convert the value into error code for the display
+    // Convert the value into error code for the display (lower = higher prio)
     switch (fault) {
         case MAX31865_FAULT_OVUV: return 0;
         case MAX31865_FAULT_RTDINLOW: return 1;
@@ -191,7 +191,7 @@ float MAX31865::calculateTemp(const uint16_t RTDraw) const {
 
     // The calculation for < 0 degC is slightly different but as it is not expected
     // for temperature to drop this low, the calculation was removed.
-    if (temp < 0) { return 0; }
+    if (temp < 0.0) { return 0.0; }
 
     return temp;
 }

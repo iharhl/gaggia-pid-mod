@@ -8,11 +8,12 @@
 
 
 typedef enum error_context {
-    ERROR_CONTEXT_TEMPSENS = 0,
-    ERROR_CONTEXT_COMM,
-    ERROR_CONTEXT_TEMPHI,
-    ERROR_CONTEXT_TEMPLO,
-    ERROR_CONTEXT_NONE = 0xFF,
+    ERROR_CONTEXT_PROT = 0,         // high prio system protection faults
+    ERROR_CONTEXT_TEMPSENS,         // temperature sensing faults
+    ERROR_CONTEXT_COMM,             // communication faults
+    ERROR_CONTEXT_TEMPHI,           // temperature high warning
+    ERROR_CONTEXT_TEMPLO,           // temperature low warning
+    ERROR_CONTEXT_NONE = 0xFF,      // no faults/warnings
 } error_context_e;
 
 typedef enum error_code {

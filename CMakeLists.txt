@@ -14,7 +14,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 pico_sdk_init()
 
-add_executable(main
+set(PROJECT_SOURCES
         src/main.cpp
         src/pid.cpp
         src/max31865.cpp
@@ -27,7 +27,10 @@ add_executable(main
         src/gui.cpp
         src/error.cpp
         src/pump.cpp
+        src/vsens.cpp
 )
+
+add_executable(main ${PROJECT_SOURCES})
 
 pico_enable_stdio_usb(main 1)
 pico_enable_stdio_uart(main 0)
@@ -36,17 +39,15 @@ target_link_libraries(main
         pico_stdlib
         hardware_spi
         hardware_i2c
+        hardware_adc
 )
 
 # Create map/bin/hex files etc.
 pico_add_extra_outputs(main)
 
-# Enable all warnings
-target_compile_options(main
-        PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
+# Enable all warnings (only for my own source files)
+set_source_files_properties(${PROJECT_SOURCES}
+        PROPERTIES COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Werror"
 )
 
 # Add cppcheck

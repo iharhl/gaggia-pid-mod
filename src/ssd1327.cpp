@@ -7,12 +7,13 @@
 /* ==================== PUBLIC METHODS ======================= */
 
 SSD1327::SSD1327(I2CDevice* i2c_device, const uint8_t size_x, const uint8_t size_y) :
-    m_i2cdevice(i2c_device), m_sizeX(size_x), m_sizeY(size_y)
-{
+    m_i2cdevice(i2c_device),
+    m_sizeX(size_x),
+    m_sizeY(size_y) {
     // Send a sequence of commands to initialize the display
     sendCommandList(init_cmd_list, sizeof(init_cmd_list));
     // Turn off all the pixels at initialization
-    turnOffAllPixels();
+    setAllPixelsOff();
 }
 
 /* Send command to set all pixels of the display OFF */
@@ -27,13 +28,14 @@ void SSD1327::fillDisplay() {
     m_i2cdevice->write8(buff, 2);
 }
 
+/* Clear prev commands like tune all pixels ON/OFF */
 void SSD1327::resetDisplay() {
     constexpr uint8_t buff[2] = { 0x00, SSD1327_DISPLAY_NORMAL };
     m_i2cdevice->write8(buff, 2);
 }
 
 void SSD1327::drawRegion(const uint8_t* data, const uint8_t x, const uint8_t y,
-                         const uint8_t width, const uint8_t height) {
+                        const uint8_t width, const uint8_t height) {
     configureDrawingRegion(x, y, width, height);
     // Write pixel data to the display
     // Divide by 2 as each byte holds two 4-bit pixels
@@ -42,24 +44,6 @@ void SSD1327::drawRegion(const uint8_t* data, const uint8_t x, const uint8_t y,
 
 
 /* ==================== PRIVATE METHODS ======================= */
-
-void SSD1327::turnOffAllPixels() {
-    configureDrawingRegion(0, 0, m_sizeX, m_sizeY);
-    // Write pixel data to the display
-    const unsigned size = m_sizeX * m_sizeY / 2;
-    // Allocate memory for size elements and zero-initialize the memory.
-    // Need to dynamically allocate as the buffer size is not known during compile-time.
-    // It is a bad idea to allocate the variable-size buffer on the stack.
-    // Could use vector here, but it blows up the size of the binary.
-    auto* data = static_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
-    // Handle allocation failure
-    if (data == nullptr)
-        return;
-    // Send the data
-    sendData(data, size);
-    // Free the allocated memory
-    free(data);
-}
 
 void SSD1327::configureDrawingRegion(const uint8_t x, const uint8_t y,
                                      const uint8_t width, const uint8_t height) {
@@ -95,13 +79,30 @@ void SSD1327::sendData(const uint8_t* data, const unsigned len) {
     auto* buff = static_cast<uint8_t*>(malloc((len + 1) * sizeof(uint8_t)));
     // Handle memory allocation failure
     if (buff == nullptr)
-        return;
+        return; // todo: handle error
     // Set control byte
     buff[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
     // Copy the data into the remaining buffer space
     memcpy(&buff[1], data, len);
     // Send it over I2C
     m_i2cdevice->write8(buff, len+1);
+    // Free the allocated memory
+    free(buff);
+}
+
+void SSD1327::setAllPixelsOff() {
+    configureDrawingRegion(0, 0, m_sizeX, m_sizeY);
+    // Write pixel data to the display
+    const unsigned size = m_sizeX * m_sizeY / 2;
+    // Allocate and zero-initialize the memory
+    auto* buff = static_cast<uint8_t*>(calloc(size + 1, sizeof(uint8_t)));
+    // Handle allocation failure
+    if (buff == nullptr)
+        return; // todo: handle error
+    // Set control byte
+    buff[0] = 0x40;  // Control byte: Co=0, D/C#=1 (Data mode)
+    // Send it over I2C
+    m_i2cdevice->write8(buff, size+1);
     // Free the allocated memory
     free(buff);
 }

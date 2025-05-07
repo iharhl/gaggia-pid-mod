@@ -2,12 +2,11 @@
 #include "clock.h"
 
 
-DisplayManager::DisplayManager(SSD1327 *display) : m_display(display)
-{
+DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
     displayHome();
 }
 
-void DisplayManager::updateTemperature(const uint8_t temp) {
+void DisplayManager::updateTemperature(const uint16_t temp) {
     // Update not faster than once a second
     const uint64_t now = Clock::now_ms();
     if (now - m_prevTempUpdateTime < 1000)
@@ -35,45 +34,67 @@ void DisplayManager::updateTemperature(const uint8_t temp) {
     }
 }
 
-void DisplayManager::updateStatus(const uint8_t context, const uint8_t code) {
+void DisplayManager::updateStatus(const uint8_t context, const uint8_t code, const bool force) {
     // Return if status is already displayed
     if (context == m_status1 and code == m_status2)
         return;
-    // Update not faster than once in two second
+    // Update not faster than once in two second (if not forced)
     const uint64_t now = Clock::now_ms();
-    if (now - m_prevStatusUpdateTime < 2000)
+    if (now - m_prevStatusUpdateTime < 2000 and !force)
         return;
     m_prevStatusUpdateTime = now;
     // Draw letter and digit corresponding to the context and code received
     m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
-            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+        TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(digit_map[code], NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status
     m_status1 = context;
     m_status2 = code;
 }
 
-void DisplayManager::resetStatus() {
+void DisplayManager::resetStatus(const bool force) {
     // Return if status OK
     if (m_status1 == 0xFF and m_status2 == 0xFF)
         return;
-    // Update not faster than once in two second
+    // Update not faster than once in two second (if not forced)
     const uint64_t now = Clock::now_ms();
-    if (now - m_prevStatusUpdateTime < 2000)
+    if (now - m_prevStatusUpdateTime < 2000 and !force)
         return;
     m_prevStatusUpdateTime = now;
     // Reset status to OK
     m_display->drawRegion(NUMBER_0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
-            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+        TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTER_K, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
 }
 
+void DisplayManager::blockingStatusAnnouncement(const uint8_t context,
+                                                const uint8_t code) const {
+    for (auto i = 0; i < 4; i++) {
+        // Draw letter and digit corresponding to the context and code received
+        m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
+            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+        m_display->drawRegion(digit_map[code], NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        // Show the status for 600 ms
+        sleep_ms(600);
+        // Clear the status completely
+        m_display->drawRegion(EMPTY_FIELD, TEXT_FIELD1_X, TEXT_FIELD1_Y,
+            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+        m_display->drawRegion(EMPTY_FIELD, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
+            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        // Show blank for 600 ms
+        sleep_ms(600);
+    }
+}
+
 void DisplayManager::updateShotTime(const uint8_t time) {
-    // Update not faster than once in 950 ms
+    // Update not faster than once in 950 ms (for consistent update).
+    // Ideally repeating timer should be used but this implementation
+    // works well enough and is more readable.
     const uint64_t now = Clock::now_ms();
     if (now - m_prevShotUpdateTime < 950)
         return;
@@ -123,29 +144,29 @@ void DisplayManager::displayHome() {
     m_display->drawRegion(THERM, ICON1_X, ICON1_Y, ICON1_WIDTH, ICON1_HEIGHT);
     // Draw 3 digits as 0
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD1_X, NUMBER_FIELD1_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD2_X, NUMBER_FIELD2_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD3_X, NUMBER_FIELD3_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed digits
     m_temp1 = m_temp2 = m_temp3 = 0;
     // Draw status icon
     m_display->drawRegion(STATUS, ICON2_X, ICON2_Y, ICON2_WIDTH, ICON2_HEIGHT);
     // Draw OK status
     m_display->drawRegion(NUMBER_0, TEXT_FIELD1_X, TEXT_FIELD1_Y,
-            TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
+        TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
     m_display->drawRegion(LETTER_K, NUMBER_FIELD4_X, NUMBER_FIELD4_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed status (0xFF is default)
     m_status1 = m_status2 = 0xFF;
     // Draw cup icon
     m_display->drawRegion(EMPTYCUP, ICON3_X, ICON3_Y, ICON3_WIDTH, ICON3_HEIGHT);
     // Draw 2 digits as 0
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD5_X, NUMBER_FIELD5_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     m_display->drawRegion(NUMBER_0, NUMBER_FIELD6_X, NUMBER_FIELD6_Y,
-            NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
+        NUMBER_FIELD_WIDTH, NUMBER_FIELD_HEIGHT);
     // Store displayed digits
     m_shottime1 = m_shottime2 = 0;
 }

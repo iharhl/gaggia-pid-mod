@@ -9,10 +9,10 @@ public:
     static void init();
     static void turnOn();
     static void turnOff();
-    static void blinkOnce(unsigned delay);
+    [[maybe_unused]] static void blinkOnce(unsigned delay);
     static void blinkForDuration(unsigned delay, unsigned duration);
     static void blinkForCycles(unsigned delay, unsigned cycles);
-    static void blinkInf(unsigned delay);
+    [[maybe_unused]] static void blinkInf(unsigned delay);
 };
 
 

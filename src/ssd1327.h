@@ -58,11 +58,11 @@ public:
     explicit SSD1327(I2CDevice* i2c_device, uint8_t size_x, uint8_t size_y);
     ~SSD1327() = default;
 
-    void clearDisplay();
-    void fillDisplay(); // turn on all the pixels
+    [[maybe_unused]] void clearDisplay();
+    [[maybe_unused]] void fillDisplay(); // turn on all the pixels
     // If commands above are used, the display needs to be reset
     // before writing pixels directly
-    void resetDisplay();
+    [[maybe_unused]] void resetDisplay();
 
     void drawRegion(const uint8_t* data, uint8_t x, uint8_t y,
         uint8_t width, uint8_t height);
@@ -72,8 +72,8 @@ private:
 
     void sendCommandList(const uint8_t* cmd_list, unsigned len);
     void sendData(const uint8_t* data, unsigned len);
+    void setAllPixelsOff();
 
-    void turnOffAllPixels(); // sets each pixel to OFF (black)
     void configureDrawingRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 };
 

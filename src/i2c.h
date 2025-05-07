@@ -14,7 +14,7 @@ public:
     ~I2CDevice() = default;
 
     void reset();
-    bool isConnected();
+    bool checkErrors();
 
     [[nodiscard]] uint8_t read8();
     void read8(uint8_t* buff, unsigned len); // read multiple bytes
