@@ -18,22 +18,22 @@ float VsysMonitor::readOnce() const {
     return v_adc * 3.0f;  // compensate for 200k/100k voltage divider
 }
 
-float VsysMonitor::readAvg(const uint8_t num) const {
+float VsysMonitor::readAvg(const uint8_t samples) const {
     if (!isADCConfigured())
         return -1.0; // todo: handle error
     uint32_t sum = 0; // num <= 255 and raw adc <= 4095 --> no overflow
-    for (auto i = 0; i < num; i++) {
+    for (auto i = 0; i < samples; i++) {
         sum += adc_read();
         sleep_us(8); // delay for stability
     }
-    const float v_adc = (sum / num) * 3.3f / 4095.0f;  // ADC reading to voltage
-    return v_adc * 3.0f;  // compensate for 200k/100k voltage divider
+    const float v_adc = (sum / samples) * 3.3f / 4095.0f; // ADC reading to voltage
+    return v_adc * 3.0f; // compensate for 200k/100k voltage divider
 }
 
 bool VsysMonitor::isADCConfigured() const {
     if (adc_get_selected_input() != m_Channel)
         return false;
-    // Pico's SDK sets gpio function to NULL for ADC
+    // Pico SDK sets pin function to FUNC_NULL for ADC
     if (gpio_get_function(m_Pin) != GPIO_FUNC_NULL)
         return false;
     return true;

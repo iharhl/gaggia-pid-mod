@@ -12,7 +12,6 @@
 #include "vsens.h"
 
 #include <cmath>
-#include "myprint.h"
 #include <hardware/watchdog.h>
 #include <pico/stdlib.h>
 
@@ -21,13 +20,16 @@
 #define PWM_CYCLE_MS            4000      // pwm cycle length in ms
 #define BREW_TEMP_SETPOINT      105
 #define BREW_TEMP_HYSTERESIS    2         // for LO/HI status display
+#define BREW_PID_KP             9.50
+#define BREW_PID_KI             0.45
+#define BREW_PID_KD             16.0
 /* System protection defines */
-#define BOILER_INV_LOW_TEMP     0.0f      // invalid temperature reading threshold
-#define BOILER_OVH_TEMP         155.0f    // boiler overheat temperature
-#define BOILER_INV_HIGH_TEMP    190.0f    // invalid temperature reading threshold
-#define BOILER_MAX_RUNTIME      2400      // max boiler runtime with heating on (in sec)
-#define VSYS_MIN_VOLT           3.9f      // min VSYS voltage allowed (nominal 5V assumed)
-#define VSYS_MAX_VOLT           5.5f      // max VSYS voltage allowed (nominal 5V assumed)
+#define BOILER_INV_LOW_TEMP     0.0       // invalid temperature reading threshold
+#define BOILER_OVH_TEMP         155.0     // boiler overheat temperature
+#define BOILER_INV_HIGH_TEMP    190.0     // invalid temperature reading threshold
+#define BOILER_MAX_RUNTIME      35        // max boiler runtime with heating on (in min)
+#define VSYS_MIN_VOLT           3.9       // min VSYS voltage allowed (nominal 5V assumed)
+#define VSYS_MAX_VOLT           5.5       // max VSYS voltage allowed (nominal 5V assumed)
 /* SPI pin configuration defines */
 #define SPI_CS_PIN              5
 #define SPI_SCK_PIN             2
@@ -39,6 +41,9 @@
 /* GPIO pin configuration defines */
 #define GPIO_SSR_PIN            11
 #define GPIO_BREW_SWITCH_PIN    26
+/* ADC configuration defines */
+#define GPIO_ADC_VDD_PIN        29
+#define GPIO_ADC_VDD_CH         3
 
 
 int main() {
@@ -48,21 +53,8 @@ int main() {
   LED::init();
   LED::turnOn();
 
-  // Set on-board regulator into PWM mode by pulling GPIO23 high.
-  // It is connected to the PS pin of the RT6150B regulator.
-  // gpio_init(23);
-  // gpio_set_dir(23, GPIO_OUT);
-  // gpio_put(23, true);
-
   // Sleep for 1 sec (can be removed)
   sleep_ms(1000);
-
-  // Setup voltage monitor on VSYS. On Pico 1 it is connected to GPIO29_ADC3.
-  const VsysMonitor vsys_adc(29, 3);
-
-  // Set up MAX31865 and its SPI driver
-  SPIDevice spi_device(SPI_CS_PIN, SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN, 1000*1000);
-  MAX31865 temp_sensor(&spi_device, MAX31865_3WIRE, MAX31865_FILT_50HZ);
 
   // Set up SSD1327 display and its I2C driver. Set up display manager
   // which handles layout-specific update of the display.
@@ -70,27 +62,34 @@ int main() {
   SSD1327 display(&i2c_device, 128, 128);
   DisplayManager gui(&display);
 
-  // Set up temperature PID controller (output is pwm duty cycle)
-  PIDController pid(9.0, 0.4, 16.0);
-  pid.enableAntiWindup(-40.0, 80.0);
+  // Setup voltage monitor on VSYS. On Pico 1 it is connected to GPIO29_ADC3.
+  const VsysMonitor vsys_adc(GPIO_ADC_VDD_PIN, GPIO_ADC_VDD_CH);
 
-  // Set up PWM signal to the solid-state relay (SSR)
-  PWMDriver pwm(GPIO_SSR_PIN, PWM_CYCLE_MS);
+  // Set up MAX31865 and its SPI driver
+  SPIDevice spi_device(SPI_CS_PIN, SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN, 1000*1000);
+  MAX31865 temp_sensor(&spi_device, MAX31865_3WIRE, MAX31865_FILT_50HZ);
 
   // Set up pump class
   Pump pump(GPIO_BREW_SWITCH_PIN);
 
-  // Setup error handler
-  ErrorHandler error_handler(&pwm, &gui);
-
-  // Enable watchdog (should be updated at least 10 times per PWM cycle).
+  // Enable watchdog (should be updated at least 8 times per PWM cycle).
   // If reboot was done -> blink the status code for some time to notify user.
   if (watchdog_caused_reboot()) {
     gui.blockingStatusAnnouncement(ERROR_CONTEXT_PROT, ERROR_CODE_0);
     gui.resetStatus(true);
     sleep_ms(2000); // can be removed
   }
-  watchdog_enable(PWM_CYCLE_MS / 10, false);
+  watchdog_enable(PWM_CYCLE_MS / 8, false);
+
+  // Set up temperature PID controller (output is pwm duty cycle)
+  PIDController pid(BREW_PID_KP, BREW_PID_KI, BREW_PID_KD);
+  pid.enableAntiWindup(-40.0, 75.0);
+
+  // Set up PWM signal to the solid-state relay (SSR)
+  PWMDriver pwm(GPIO_SSR_PIN, PWM_CYCLE_MS);
+
+  // Setup error handler
+  ErrorHandler error_handler(&pwm, &gui);
 
   while(true) {
 
@@ -127,10 +126,11 @@ int main() {
 
     // Check for system protection faults
     const float vsys = vsys_adc.readAvg(4);
-    error_handler.verify(vsys >= VSYS_MAX_VOLT, ERROR_CONTEXT_PROT, ERROR_CODE_1);
-    error_handler.verify(vsys <= VSYS_MIN_VOLT, ERROR_CONTEXT_PROT, ERROR_CODE_2);
-    error_handler.verify(temp < BOILER_OVH_TEMP, ERROR_CONTEXT_PROT, ERROR_CODE_3);
-    error_handler.verify(Clock::now_sec() < BOILER_MAX_RUNTIME, ERROR_CONTEXT_PROT, ERROR_CODE_4);
+    error_handler.verify(vsys > 0.0, ERROR_CONTEXT_PROT, ERROR_CODE_1);
+    error_handler.verify(vsys <= VSYS_MAX_VOLT, ERROR_CONTEXT_PROT, ERROR_CODE_2);
+    error_handler.verify(vsys >= VSYS_MIN_VOLT, ERROR_CONTEXT_PROT, ERROR_CODE_3);
+    error_handler.verify(temp < BOILER_OVH_TEMP, ERROR_CONTEXT_PROT, ERROR_CODE_4);
+    error_handler.verify(Clock::now_min() <= BOILER_MAX_RUNTIME, ERROR_CONTEXT_PROT, ERROR_CODE_5);
 
     // Display error if present and disable PWM if needed
     error_handler.act();

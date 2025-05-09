@@ -10,11 +10,11 @@ public:
     explicit DisplayManager(SSD1327* display);
     ~DisplayManager() = default;
 
-    void updateTemperature(uint16_t temp);
+    void updateTemperature(uint8_t temp);
 
     void updateStatus(uint8_t context, uint8_t code, bool force = false);
     void resetStatus(bool force = false);
-    void blockingStatusAnnouncement(uint8_t context, uint8_t code) const;
+    void blockingStatusAnnouncement(uint8_t context, uint8_t code);
 
     void updateShotTime(uint8_t time);
     void updateCupIcon(bool brewing);

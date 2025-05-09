@@ -10,7 +10,7 @@ public:
     ~VsysMonitor() = default;
 
     [[nodiscard]] float readOnce() const;
-    [[nodiscard]] float readAvg(uint8_t num) const;
+    [[nodiscard]] float readAvg(uint8_t samples) const;
 
 private:
     uint8_t m_Pin, m_Channel;

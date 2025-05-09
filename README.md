@@ -29,7 +29,7 @@ quality.
    - [Helper tools](#helper-tools)
 3. [Results](#results)
    - [Final assembly](#final-assembly)
-   - [Testing](#testing)
+   - [Calibration](#calibration)
    - [Taste Test](#taste-test)
 4. [Resources](#resources)
 
@@ -169,21 +169,23 @@ pressure profiling, it is worth noting that this method can lead to
 increased wear on the pump, as this vibration pump is not designed to
 operate under such conditions.
 
-A simpler and less damaging alternative is pump time control. By
-interrupting power to the pump, you can implement programmable shot
-timing — effectively automating brew durations without modifying flow
-or pressure directly.
-
-All that’s required for this mod is a relay board and some wiring to
-detect when the brew button has been pressed.
+A simpler alternative is pump time control. By interrupting power to the
+pump, you can implement programmable shot timing — effectively automating
+brew durations without modifying flow or pressure directly. All that is
+required for this mod is a relay board and some wiring to detect when the
+brew button has been pressed.
 
 Since I dragged this project out for too long, I ultimately decided
 to skip the relay part of the mod — it would not have made a meaningful
 difference for my use case anyway. However, I wired the brew button
-to the Pico. On the EU model of the machine, there is a switch-off board
-included. Since I do not need its functionality, I removed the wires on
-the left side of the brew switch (in my case, blue and green ones).
-These connections can now be used to detect when the button is pressed.
+to the Pico.
+
+On the EU model of the machine, there is a switch-off board
+included. Wires on the left side of the brew switch (in my case, blue and
+green ones) are connected to it so that the power-off timer is reset
+when brewing. I removed these two wires and shorted them (to make the
+board think the brew is on at all time). The available connections can
+now be used to detect when the button is pressed.
 
 
 ## Software
@@ -277,8 +279,9 @@ explore.
 
 ### Error handler
 
-As this mod is not bulletproof, some form of error handler was logical
-to implement.
+As this mod is not exactly stress-tested, some form of error handler was
+logical to implement.
+
 The approach I took was straightforward: during a cycle, the system
 checks whether input conditions are met. If a condition fails and the
 associated error has a higher priority than previously stored error, the
@@ -289,6 +292,29 @@ actions are taken:
 
 - Display the current error code. If no error is present, reset the
 error status and re-enable the PWM.
+
+Possible error codes are summarized in the table below:
+
+| Error Code | Error Context | Description                                                                           |
+|------------|---------------|---------------------------------------------------------------------------------------|
+| P0         | Protection    | Watchdog just rebooted the MCU (execution will continue shortly)                      |
+| P1         |               | VSYS ADC is not configured correctly                                                  |
+| P2         |               | Over voltage detected on VSYS                                                         |
+| P3         |               | Under voltage detected on VSYS                                                        |
+| P4         |               | Boiler too hot (higher than typical steaming temperature)                             |
+| P5         |               | Machine was running for too long                                                      |
+| S0         | Sensing       | MAX31865 reports under/overvoltage                                                    |
+| S1         |               | MAX31865 reports RTD input voltage is too low                                         |
+| S2         |               | MAX31865 reports reference input voltage is too high                                  |
+| S3         |               | MAX31865 reports reference input voltage is too low                                   |
+| S4         |               | MAX31865 reports RTD resistance is lower than the configured low threshold            |
+| S5         |               | MAX31865 reports RTD resistance is higher than the configured high threshold          |
+| S6         |               | Abnormal / not realistic boiler temperature (without MAX31865 reporting faults)       |
+| C0         | Communication | Error occurred during I2C communication                                               |
+| C1         |               | SPI device seems to be disconnected                                                   |
+| HI         | User info     | Warning to the user that boiler temperature above setpoint (does not disable the PWM) |
+| LO         |               | Warning to the user that boiler temperature below setpoint (does not disable the PWM) |
+| OK         |               | Boiler temperature close to setpoint and no errors detected                           |
 
 Check implementation here — [src/error.cpp](src/error.cpp)
 
@@ -319,10 +345,7 @@ It is split into three rows. These rows are:
 1. Thermometer icon and three digit fields to show the temperature
 of the boiler.
 2. Status icon and two fields to show the status code. Error codes are 
-represented as a letter and a number. Additional codes are:
-   - **OK** for no errors and boiler ready for brewing.
-   - **LO** for boiler too cold for brewing.
-   - **HI** for boiler too hot for brewing.
+represented as a letter and a number (except for HI/LO/OK status codes).
 3. Cup icon and two digit fields to show the shot timer. When the brew
 switch is pressed, the timer starts. After the button is released, the
 timer remains visible for 5 seconds before automatically resetting to
@@ -371,6 +394,13 @@ it just encapsulates the logic relevant to time. Check
 - Led class controls the on-board LED. Same as clock, all methods are
 static. Check [src/led.cpp](src/led.cpp)
 
+- Vsys monitor class provides ability to measure the voltage on VSYS line.
+As the ADC handling is minimal in the software, I decided to not create a
+separate class for it. Check [src/vses.cpp](src/vsens.cpp)
+
+- Watchdog that reboots the MCU if it is not updated in a defined amount
+of time. It has no class of its own, direct SDK calls are used.
+
 - For debug and test data recording, custom print functions were
 implemented. They communicate data over serial to a connected
 computer. Check [src/myprint.h](src/myprint.h)
@@ -396,15 +426,14 @@ Here is the circuit diagram of the final assembly:
 
 <img src="/docs/architecture/circuit.png" alt="circuit" width="600" height="340">
 
-
-### Testing
+### Calibration
 
 To calibrate the PID, I began by recording performance data. The
 graphs below show the final results I was able to achieve after some
 calibration.
 
 The boiler heat-up is quite smooth, reaching operating temperature in
-about 100 seconds. The system seems slightly overdamped, requiring some
+about 100 seconds. The system seems slightly over damped, requiring some
 effort to reach the final few degrees. Once at temperature, it oscillates
 with a ±1°C deviation for a short while. Given the system's slow thermal
 response, I consider this level of accuracy quite acceptable. By around
@@ -412,9 +441,9 @@ the 4-minute mark, the error narrows to about ±0.5°C and continues to
 improve over time.
 
 The result of a shot pull test is also shown below. During brewing, the
-water temperature drops by roughly 3°C. After, it overshoots by about
+water temperature drops by almost 3°C. After, it overshoots by about
 1.5°C but stabilizes relatively quickly, with full recovery achieved
-within 1 minute.
+within a minute.
 
 <p>
 <img src="/docs/tests/heatup.png" alt="init_heat" width="300" height="225">
@@ -426,18 +455,18 @@ steam control. As expected, once the boiler was heated, I reset the
 steam switch, and the temperature gradually decreased. After such a
 prolonged (passive) cooling, the integral term accumulated significantly,
 resulting in an initial temperature undershoot (visible at around the
-650-second mark). However, within about a minute, the controller
-compensated and returned the system to the setpoint.
+600-second mark). However, within about one and a half minutes, the
+controller compensated and returned the system to the setpoint.
 
 While this is not a realistic usage scenario — doubt anyone would really
-wait 10 minutes for the boiler to cool passively — I conducted a more
-practical test next. After reaching steam temperature, I manually dropped
-the temperature by flushing water. This caused the temperature to fall
-below the setpoint, but the controller responded quickly. Two factors
-contributed to the improved response: first, the integral term had less
-time to accumulate error; second, the steep drop triggered a strong
-derivative response. In this test, the system recovered rapidly and
-stabilized efficiently.
+wait 10 minutes for the boiler to cool passively (while having the machine
+on) — I conducted a more practical test next. After reaching steam
+temperature, I manually dropped the temperature by flushing water. This
+caused the temperature to fall below the setpoint, but the controller
+responded quickly. Two factors contributed to the improved response:
+first, the integral term had less time to accumulate error; second, the
+steep drop triggered a strong derivative response. In this test, the
+system recovered rapidly and stabilized efficiently.
 
 <p>
 <img src="/docs/tests/steam-rec-passive.png" alt="steam_act" width="300" height="225">
@@ -449,28 +478,24 @@ than adequate for real-world use — substantially better than the stock
 configuration. Although further PID tuning is possible, the current
 setup delivers great results.
 
-
 ### Taste test
 
 Finally, let's talk about the coffee itself. Being honest, I am not a big
 coffee enthusiast. Even with specialty beans, the stock machine produced
 only decent results, definitely better than your average non-specialty
 cafe, but still nothing I would drink without milk. The espresso often
-leaned too acidic, and not in a pleasant way. It was also easy to pull
-a bad shot (skill issue, gonna admit).
+leaned too acidic, and not in a pleasant way. Once in a while, I would
+even get a hardly drinkable shot (skill issue, gonna admit).
 
-So, during a final shot pull test I was not expecting much. My goal was
-to collect performance data, not enjoy the coffee. The setup was far
-from ideal — electronics were hanging out of the machine, the steam tube
-was not securely attached, and the boiler was completely unscrewed. I
-did not think this shot would be worth tasting.
+The quality of the shots I got while testing the mod were surprising. For
+the first time, I finally was able to taste those flavor "notes" that
+coffee influencers always talk about. The acidity was still present, but
+now it felt balanced — bright, not sharp — allowing more complex flavors
+to emerge.
 
-But I was honestly surprised. For the first time, I finally was able to
-taste those flavor "notes" that coffee influencers always talk about.
-The acidity was still present, but now it felt balanced — bright, not
-sharp — allowing more complex flavors to emerge.
-
-Seems like this project was worth it after all.
+Even more surprising is that in a test setup and very little effort put
+into puck preparation, the espresso tasted substantially better than on
+the stock machine.
 
 
 ## Resources
@@ -478,11 +503,14 @@ Seems like this project was worth it after all.
 Material on how to approach the mod:
 - Gagginno project - https://gaggiuino.github.io/#/
 - BaristaGadgets kit, specifically this video - https://www.youtube.com/watch?v=gj9qLIDaF9g
+- Guide on how Gaggia machine works - https://comoricoffee.com/en/gaggia-classic-pro-circuit-diagram-en/
 
-Example code for drivers development:
-- https://github.com/adafruit/Adafruit_MAX31865/tree/master
-- https://github.com/adafruit/Adafruit_SSD1327/blob/master/Adafruit_SSD1327.cpp
-- https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GrayOLED.cpp
+Example code from Adafruit for drivers development:
+- MAX31865:
+  - https://github.com/adafruit/Adafruit_MAX31865/tree/master
+- SSD1327:
+  - https://github.com/adafruit/Adafruit_SSD1327/blob/master/Adafruit_SSD1327.cpp
+  - https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GrayOLED.cpp
 
 Control strategy inspirations:
 - https://github.com/shmick/Espresso-PID-Controller/tree/master

@@ -6,7 +6,7 @@ DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
     displayHome();
 }
 
-void DisplayManager::updateTemperature(const uint16_t temp) {
+void DisplayManager::updateTemperature(const uint8_t temp) {
     // Update not faster than once a second
     const uint64_t now = Clock::now_ms();
     if (now - m_prevTempUpdateTime < 1000)
@@ -72,7 +72,11 @@ void DisplayManager::resetStatus(const bool force) {
 }
 
 void DisplayManager::blockingStatusAnnouncement(const uint8_t context,
-                                                const uint8_t code) const {
+                                                const uint8_t code) {
+    // Store the status
+    m_status1 = context;
+    m_status2 = code;
+    // Blink the status 4 times
     for (auto i = 0; i < 4; i++) {
         // Draw letter and digit corresponding to the context and code received
         m_display->drawRegion(letter_map[context], TEXT_FIELD1_X, TEXT_FIELD1_Y,
