@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "clock.h"
+#include "error.h"
 
 
 DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
@@ -7,9 +8,10 @@ DisplayManager::DisplayManager(SSD1327 *display) : m_display(display) {
 }
 
 void DisplayManager::updateTemperature(const uint8_t temp) {
-    // Update not faster than once a second
+    // Update not faster than once a second. Only update if no error
+    // reported (if status is LO, HI or OK).
     const uint64_t now = Clock::now_ms();
-    if (now - m_prevTempUpdateTime < 1000)
+    if (now - m_prevTempUpdateTime < 1000 or m_status1 < ERROR_CONTEXT_TEMPHI)
         return;
     m_prevTempUpdateTime = now;
     // Split value into 3 digits

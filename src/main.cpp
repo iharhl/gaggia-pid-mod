@@ -28,8 +28,8 @@
 #define BOILER_OVH_TEMP         155.0     // boiler overheat temperature
 #define BOILER_INV_HIGH_TEMP    190.0     // invalid temperature reading threshold
 #define BOILER_MAX_RUNTIME      35        // max boiler runtime with heating on (in min)
-#define VSYS_MIN_VOLT           3.9       // min VSYS voltage allowed (nominal 5V assumed)
-#define VSYS_MAX_VOLT           5.5       // max VSYS voltage allowed (nominal 5V assumed)
+#define VSYS_MIN_VOLT           3.1       // min VSYS voltage allowed
+#define VSYS_MAX_VOLT           5.5       // max VSYS voltage allowed
 /* SPI pin configuration defines */
 #define SPI_CS_PIN              5
 #define SPI_SCK_PIN             2
@@ -73,7 +73,7 @@ int main() {
   Pump pump(GPIO_BREW_SWITCH_PIN);
 
   // Enable watchdog (should be updated at least 8 times per PWM cycle).
-  // If reboot was done -> blink the status code for some time to notify user.
+  // If reboot was done -> blink the status code for some time to notify the user.
   if (watchdog_caused_reboot()) {
     gui.blockingStatusAnnouncement(ERROR_CONTEXT_PROT, ERROR_CODE_0);
     gui.resetStatus(true);

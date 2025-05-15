@@ -1,7 +1,6 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <cstdint>
 #include "ssd1327.h"
 
 
