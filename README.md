@@ -28,8 +28,8 @@ quality.
    - [Other](#other)
    - [Helper tools](#helper-tools)
 3. [Results](#results)
-   - [Final assembly](#final-assembly)
    - [Calibration](#calibration)
+   - [Final assembly](#final-assembly)
    - [Taste Test](#taste-test)
 4. [Resources](#resources)
 
@@ -133,21 +133,25 @@ important elements are still missing.
 
 First, the Raspberry Pi Pico needs a power source. While it can be
 powered via USB during development and debugging, this is only a
-temporary solution. For a standalone setup, an AC/DC converter is
+temporary solution. For a standalone setup, an AC/DC power supply is
 required to draw power from the machine itself. I found a small module
 on AliExpress that outputs up to 600mA at 5V, which is more than
 sufficient for powering the Pico and a few peripherals.
 
-The converted turned out to be quite noisy, with voltage spikes
-occasionally reaching up to 400mV (based on the rough measurements I 
-took with an oscilloscope). The quality of my wiring likely contributed
-to the issue as well. While most components in the system tolerate this
-noise well, the MAX31865 is significantly more sensitive. As a result,
-it frequently reported faults during temperature readings. To address
-this, I added a pair of decoupling capacitors between VSYS and GND: a
-100µF electrolytic capacitor for bulk filtering and a 0.1µF ceramic
-capacitor for high-frequency noise suppression. This appears to have
-resolved the issue.
+The module turned out to be of poor quality. Its output was quite noisy,
+and there were grounding issues. While most components in the system
+would tolerate these, the MAX31865 is considerably more sensitive. As a
+result, it frequently reported faults during temperature readings.
+
+Fortunately, I had an AC/DC power supply from my broken speakers on hand,
+so I used it for this project. Adding a pair of decoupling capacitors to
+its output (100µF electrolytic and 0.1µF ceramic) resulted in a very smooth
+voltage curve. However, the output measured at ~6V, which is around absolute
+maximum rating of the on-board regulator. I used a diode to introduce a
+voltage drop. Additionally, the power supply discharged very slowly after
+the power was cut off. To address this, I soldered in a low-value bleed
+resistor to speed up the discharge. In the end, the Pico is powered via
+the VSYS pin with a stable ~5.1V supply.
 
 <img src="/docs/hardware/acdc.jpg" alt="hw_ACDC" width="220" height="220">
 
@@ -420,12 +424,6 @@ To aid the development, I made several scripts which are stored in the
 
 ## Results
 
-### Final assembly
-
-Here is the circuit diagram of the final assembly:
-
-<img src="/docs/architecture/circuit.png" alt="circuit" width="600" height="340">
-
 ### Calibration
 
 To calibrate the PID, I began by recording performance data. The
@@ -478,20 +476,50 @@ than adequate for real-world use — substantially better than the stock
 configuration. Although further PID tuning is possible, the current
 setup delivers great results.
 
+### Final assembly
+
+The circuit diagram of the final assembly is shown below. It illustrates
+how most of the components were wired together.
+
+<img src="/docs/assembly/circuit.png" alt="circuit" width="800" height="445">
+
+The photos below provide a rough overview of the assembly process. In
+the first image, I have highlighted the main modification. Here is a
+brief explanation of the numbered tags:
+
+1. **Power Source** – Power is drawn from the machine using piggyback
+   connectors, which are active when the main power switch is turned on.
+2. **Power Supply Box** – Contains the AC/DC power supply and a small
+   piece of protoboard with the necessary components soldered in.
+3. **RTD Sensor** – Replaces the machine's original thermostat.
+4. **Solid-State Relay (SSR)** – Its AC side is connected to the two
+   wires that were previously attached to the brew thermostat.
+5. **Brew Switch Wiring** – Two wires are connected to the brew switch
+   to detect when it’s pressed. The original disconnected wires are shorted
+   to prevent the switch-off board from shutting down the machine.
+6. **Control Box** – Houses the Raspberry Pi Pico and the MAX31865.
+
+In the second image, you can see the fully assembled machine. The display
+is mounted in a case attached to the side of the machine.
+
+<p>
+<img src="/docs/assembly/assembly.jpeg" alt="circuit" width="400" height="534">
+<img src="/docs/assembly/machine.jpeg" alt="circuit" width="365" height="534">
+</p>
+
 ### Taste test
 
-Finally, let's talk about the coffee itself. Being honest, I am not a big
-coffee enthusiast. Even with specialty beans, the stock machine produced
-only decent results, definitely better than your average non-specialty
-cafe, but still nothing I would drink without milk. The espresso often
-leaned too acidic, and not in a pleasant way. Once in a while, I would
+Finally, let's talk about the coffee itself. As a not-so-hardcore coffee
+enthusiast, here is my take on the stock machine. Even with specialty beans,
+it produced only decent results, definitely better than your average
+non-specialty cafe, but still nothing I would drink without milk. The espresso
+often leaned too acidic, and not in a pleasant way. Once in a while, I would
 even get a hardly drinkable shot (skill issue, gonna admit).
 
-The quality of the shots I got while testing the mod were surprising. For
-the first time, I finally was able to taste those flavor "notes" that
-coffee influencers always talk about. The acidity was still present, but
-now it felt balanced — bright, not sharp — allowing more complex flavors
-to emerge.
+The quality of the shots I got while testing the mod were surprising. I
+finally was able to taste those flavor "notes" that coffee influencers always
+talk about. The acidity was still present, but now it felt balanced — bright,
+not sharp — allowing more complex flavors to emerge.
 
 Even more surprising is that in a test setup and very little effort put
 into puck preparation, the espresso tasted substantially better than on
@@ -511,11 +539,6 @@ Example code from Adafruit for drivers development:
 - SSD1327:
   - https://github.com/adafruit/Adafruit_SSD1327/blob/master/Adafruit_SSD1327.cpp
   - https://github.com/adafruit/Adafruit-GFX-Library/blob/master/Adafruit_GrayOLED.cpp
-
-Control strategy inspirations:
-- https://github.com/shmick/Espresso-PID-Controller/tree/master
-- https://www.instructables.com/PID-Temperature-Controller/
-- PID integral anti-windup implementation from "PID Control" series by Brian Douglas
 
 MAX31865 setup guide:
 - https://learn.adafruit.com/adafruit-max31865-rtd-pt100-amplifier/overview
