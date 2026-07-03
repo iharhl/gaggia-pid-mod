@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 set(CMAKE_CXX_COMPILER_FORCED True)
 set(CMAKE_C_COMPILER_FORCED True)
 
-set(PICO_BOARD pico)
+set(PICO_BOARD "pico" CACHE STRING "RP2040 board type (pico, waveshare_rp2040_zero)")
 
 set(PICO_SDK_PATH /Users/ihar/Developer/pico-sdk)
 include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
@@ -40,10 +40,14 @@ target_link_libraries(main
         hardware_spi
         hardware_i2c
         hardware_adc
+        hardware_pio
 )
 
 # Create map/bin/hex files etc.
 pico_add_extra_outputs(main)
+
+# Define DEBUG macro for Debug builds (used for debug prints)
+target_compile_definitions(main PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 
 # Enable all warnings (only for my own source files)
 set_source_files_properties(${PROJECT_SOURCES}

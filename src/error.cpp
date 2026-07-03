@@ -42,3 +42,6 @@ void ErrorHandler::act() {
     }
 }
 
+std::pair<uint8_t, uint8_t> ErrorHandler::get() const {
+    return {m_context, m_code};
+}

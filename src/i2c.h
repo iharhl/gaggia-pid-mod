@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <hardware/i2c.h>
+#include <pico/time.h>
 
 
 class I2CDevice {
@@ -25,6 +26,7 @@ private:
     i2c_inst_t* m_i2c;
     uint8_t m_sdapin, m_sclpin, m_addr;
     uint32_t m_freq;
+    uint32_t m_timeout_us = 10000; // 10ms timeout for I2C transfers
 
     unsigned m_err = 0;
 

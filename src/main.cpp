@@ -14,6 +14,9 @@
 #include <cmath>
 #include <hardware/watchdog.h>
 #include <pico/stdlib.h>
+#ifdef DEBUG
+#include <string>
+#endif //DEBUG
 
 
 /* Brew control configuration defines */
@@ -53,8 +56,15 @@ int main() {
   LED::init();
   LED::turnOn();
 
-  // Sleep for 1 sec (can be removed)
-  sleep_ms(1000);
+#ifdef DEBUG
+  sleep_ms(5000);
+  printf("[DBG] Board: ");
+#ifdef WAVESHARE_RP2040_ZERO
+  printf("Waveshare RP2040-Zero\n");
+#else
+  printf("Raspberry Pi Pico\n");
+#endif //WAVESHARE_RP2040_ZERO
+#endif //DEBUG
 
   // Set up SSD1327 display and its I2C driver. Set up display manager
   // which handles layout-specific update of the display.
@@ -144,6 +154,15 @@ int main() {
     // Update displayed temperature and brew time
     gui.updateTemperature(static_cast<uint8_t>(roundf(temp)));
     gui.updateShotTime(brewtime);
+
+#ifdef DEBUG
+    static unsigned dbg_ticks = 0;
+    if (++dbg_ticks % 10 == 0) {
+      auto [context, code] = error_handler.get();
+      printf("[DBG] T=%3.0fC  PID=%5.1f%%  Vsys=%.2fV  Brew=%us  Err=%d|%d\n",
+             temp, pwm_duty_cycle, vsys, brewtime, context, code);
+    }
+#endif //DEBUG
 
     // Update watchdog
     watchdog_update();
