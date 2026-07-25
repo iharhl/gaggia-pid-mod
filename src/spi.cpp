@@ -8,7 +8,7 @@ SPIDevice::SPIDevice(const uint8_t cspin, const uint8_t sckpin,
                      const uint32_t freq) :
     m_cspin(cspin), m_sckpin(sckpin),
     m_misopin(misopin), m_mosipin(mosipin),
-    m_freq(freq), m_spi(spi_default)
+    m_freq(freq), m_spi(spi0)
 {
     // No spi instance specified -> take default
     configure();
@@ -31,12 +31,13 @@ void SPIDevice::reset() {
 }
 
 bool SPIDevice::isConnected() {
-    // Crude implementation but basically the default value in the
-    // Pico's FIFO buffer is 0xFF. If I request the spi device for the
-    // data 10 times, and it reads as 0xFF every time, I assume there
-    // is no device connected.
+    // Crude implementation, which checks for non-default value in the
+    // Pico's FIFO buffer (which is 0xFF) + check for non-zero.
+    // If request the spi device for the data 10 times, and it reads 0xFF/0x00
+    // every time, I assume there is no device connected.
     for (unsigned i = 0; i < 10; i++) {
-        if (write8ThenRead8(0x00) != 0xFF)
+        const uint8_t val = write8ThenRead8(0x00);
+        if (val != 0xFF && val != 0x00)
             return true;
         sleep_us(80); // arbitrary delay between transfers
     }

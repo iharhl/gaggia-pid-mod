@@ -44,8 +44,13 @@
 #define SPI_MOSI_PIN            3
 #define SPI_MISO_PIN            4
 /* I2C pin configuration defines */
+#ifdef WAVESHARE_RP2040_ZERO
+#define I2C_SDA_PIN             8
+#define I2C_SCL_PIN             9
+#else
 #define I2C_SDA_PIN             20
 #define I2C_SCL_PIN             21
+#endif
 /* GPIO pin configuration defines */
 #define GPIO_SSR_PIN            11
 #define GPIO_BREW_SWITCH_PIN    26

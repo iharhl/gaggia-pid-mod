@@ -5,7 +5,7 @@
 
 I2CDevice::I2CDevice(const uint8_t sdapin, const uint8_t sclpin,
                     const uint32_t freq, const uint8_t addr)
-                    : m_i2c(i2c_default), m_sdapin(sdapin),
+                    : m_i2c(i2c0), m_sdapin(sdapin),
                     m_sclpin(sclpin), m_addr(addr), m_freq(freq) {
     configure();
 }
@@ -25,30 +25,26 @@ void I2CDevice::reset() {
 
 uint8_t I2CDevice::read8() {
     uint8_t buff;
-    const absolute_time_t timeout = make_timeout_time_us(m_timeout_us);
-    const int ret = i2c_read_blocking_until(m_i2c, m_addr, &buff, 1, false, timeout);
+    const int ret = i2c_read_blocking(m_i2c, m_addr, &buff, 1, false);
     if (ret != 1)
         m_err++;
     return buff;
 }
 
 void I2CDevice::read8(uint8_t *buff, const unsigned len) {
-    const absolute_time_t timeout = make_timeout_time_us(m_timeout_us);
-    const int ret = i2c_read_blocking_until(m_i2c, m_addr, buff, len, false, timeout);
+    const int ret = i2c_read_blocking(m_i2c, m_addr, buff, len, false);
     if (ret != static_cast<int>(len))
         m_err++;
 }
 
 void I2CDevice::write8(const uint8_t data, const bool nostop) {
-    const absolute_time_t timeout = make_timeout_time_us(m_timeout_us);
-    const int ret = i2c_write_blocking_until(m_i2c, m_addr, &data, 1, nostop, timeout);
+    const int ret = i2c_write_blocking(m_i2c, m_addr, &data, 1, nostop);
     if (ret != 1)
         m_err++;
 }
 
 void I2CDevice::write8(const uint8_t *data, const unsigned len) {
-    const absolute_time_t timeout = make_timeout_time_us(m_timeout_us);
-    const int ret = i2c_write_blocking_until(m_i2c, m_addr, data, len, false, timeout);
+    const int ret = i2c_write_blocking(m_i2c, m_addr, data, len, false);
     if (ret != static_cast<int>(len))
         m_err++;
 }
