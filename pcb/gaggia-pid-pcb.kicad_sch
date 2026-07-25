@@ -2884,7 +2884,7 @@
 		)
 		(uuid "526ba358-92b0-4269-a985-6832b1a68184")
 	)
-	(text "Resistor choice based on stock I had.\nVDC scaling : 10k / 32k = 0.3125"
+	(text "Resistor choice based on stock I had.\nVDC scaling : 10k / 22k = 0.3125"
 		(exclude_from_sim no)
 		(at 103.886 133.096 0)
 		(effects
@@ -2927,7 +2927,7 @@
 		)
 		(uuid "9075e330-a6e9-4e49-b4b2-968051620e0b")
 	)
-	(text "Power source connector\n(from AC/DC) ~ +6V"
+	(text "Power source connector\n(from AC/DC) approx +6V"
 		(exclude_from_sim no)
 		(at 50.038 134.366 0)
 		(effects
@@ -2980,7 +2980,7 @@
 		(uuid "32feca00-2118-4e77-bd70-6e9eb591cbed")
 	)
 	(junction
-		(at 49.53 186.69)
+		(at 48.26 186.69)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4cf3da8d-fc55-4037-a04a-9647b2acd921")
@@ -3016,13 +3016,13 @@
 		(uuid "b6554683-a187-42c2-a689-ab8fdddc1c4d")
 	)
 	(junction
-		(at 39.37 186.69)
+		(at 38.1 186.69)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c3abb641-eca8-4953-8c21-6ae91448cf9a")
 	)
 	(junction
-		(at 29.21 186.69)
+		(at 27.94 186.69)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e8f6f111-c55e-47e3-b180-0f40dc90b15c")
@@ -3191,7 +3191,7 @@
 	)
 	(wire
 		(pts
-			(xy 22.86 186.69) (xy 29.21 186.69)
+			(xy 22.86 186.69) (xy 27.94 186.69)
 		)
 		(stroke
 			(width 0)
@@ -3261,7 +3261,7 @@
 	)
 	(wire
 		(pts
-			(xy 59.69 186.69) (xy 49.53 186.69)
+			(xy 58.42 186.69) (xy 48.26 186.69)
 		)
 		(stroke
 			(width 0)
@@ -3461,7 +3461,7 @@
 	)
 	(wire
 		(pts
-			(xy 29.21 186.69) (xy 39.37 186.69)
+			(xy 27.94 186.69) (xy 38.1 186.69)
 		)
 		(stroke
 			(width 0)
@@ -3511,7 +3511,7 @@
 	)
 	(wire
 		(pts
-			(xy 39.37 186.69) (xy 49.53 186.69)
+			(xy 38.1 186.69) (xy 48.26 186.69)
 		)
 		(stroke
 			(width 0)
@@ -4332,7 +4332,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
-		(at 29.21 184.15 0)
+		(at 27.94 184.15 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4343,7 +4343,7 @@
 		(fields_autoplaced yes)
 		(uuid "06a49352-ee45-4661-be58-ec2954f2a99e")
 		(property "Reference" "MH1"
-			(at 31.75 181.6099 0)
+			(at 30.48 181.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4353,8 +4353,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M3"
-			(at 31.75 184.1499 0)
+		(property "Value" "M2.5"
+			(at 30.48 184.1499 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4364,8 +4364,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
-			(at 29.21 184.15 0)
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via"
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4376,7 +4376,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4387,7 +4387,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection"
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4398,7 +4398,7 @@
 			)
 		)
 		(property "Distributor Link 1" ""
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4409,7 +4409,7 @@
 			)
 		)
 		(property "Distributor Link 2" ""
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4420,7 +4420,7 @@
 			)
 		)
 		(property "LCSC" ""
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4431,7 +4431,7 @@
 			)
 		)
 		(property "Manufacturer Part Number" ""
-			(at 29.21 184.15 0)
+			(at 27.94 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4455,7 +4455,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
-		(at 59.69 184.15 0)
+		(at 58.42 184.15 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4466,7 +4466,7 @@
 		(fields_autoplaced yes)
 		(uuid "070ea588-f46f-4da8-8052-afe5caf72596")
 		(property "Reference" "MH4"
-			(at 62.23 181.6099 0)
+			(at 60.96 181.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4476,8 +4476,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M3"
-			(at 62.23 184.1499 0)
+		(property "Value" "M2.5"
+			(at 60.96 184.1499 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4487,8 +4487,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
-			(at 59.69 184.15 0)
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via"
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4499,7 +4499,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4510,7 +4510,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection"
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4521,7 +4521,7 @@
 			)
 		)
 		(property "Distributor Link 1" ""
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4532,7 +4532,7 @@
 			)
 		)
 		(property "Distributor Link 2" ""
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4543,7 +4543,7 @@
 			)
 		)
 		(property "LCSC" ""
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4554,7 +4554,7 @@
 			)
 		)
 		(property "Manufacturer Part Number" ""
-			(at 59.69 184.15 0)
+			(at 58.42 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6713,7 +6713,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
-		(at 39.37 184.15 0)
+		(at 38.1 184.15 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6724,7 +6724,7 @@
 		(fields_autoplaced yes)
 		(uuid "c1785113-160f-405c-939c-4d66091fde63")
 		(property "Reference" "MH2"
-			(at 41.91 181.6099 0)
+			(at 40.64 181.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6734,8 +6734,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M3"
-			(at 41.91 184.1499 0)
+		(property "Value" "M2.5"
+			(at 40.64 184.1499 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6745,8 +6745,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
-			(at 39.37 184.15 0)
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via"
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6757,7 +6757,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6768,7 +6768,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection"
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6779,7 +6779,7 @@
 			)
 		)
 		(property "Distributor Link 1" ""
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6790,7 +6790,7 @@
 			)
 		)
 		(property "Distributor Link 2" ""
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6801,7 +6801,7 @@
 			)
 		)
 		(property "LCSC" ""
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6812,7 +6812,7 @@
 			)
 		)
 		(property "Manufacturer Part Number" ""
-			(at 39.37 184.15 0)
+			(at 38.1 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7740,7 +7740,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad")
-		(at 49.53 184.15 0)
+		(at 48.26 184.15 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7751,7 +7751,7 @@
 		(fields_autoplaced yes)
 		(uuid "f05c318e-b8bd-40f1-867d-c3ad4e82d1e2")
 		(property "Reference" "MH3"
-			(at 52.07 181.6099 0)
+			(at 50.8 181.6099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7761,8 +7761,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "M3"
-			(at 52.07 184.1499 0)
+		(property "Value" "M2.5"
+			(at 50.8 184.1499 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7772,8 +7772,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad_Via"
-			(at 49.53 184.15 0)
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via"
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7784,7 +7784,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7795,7 +7795,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection"
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7806,7 +7806,7 @@
 			)
 		)
 		(property "Distributor Link 1" ""
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7817,7 +7817,7 @@
 			)
 		)
 		(property "Distributor Link 2" ""
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7828,7 +7828,7 @@
 			)
 		)
 		(property "LCSC" ""
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7839,7 +7839,7 @@
 			)
 		)
 		(property "Manufacturer Part Number" ""
-			(at 49.53 184.15 0)
+			(at 48.26 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

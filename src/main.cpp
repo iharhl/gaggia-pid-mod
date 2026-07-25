@@ -31,8 +31,13 @@
 #define BOILER_OVH_TEMP         155.0     // boiler overheat temperature
 #define BOILER_INV_HIGH_TEMP    190.0     // invalid temperature reading threshold
 #define BOILER_MAX_RUNTIME      35        // max boiler runtime with heating on (in min)
+#ifdef WAVESHARE_RP2040_ZERO
+#define VSYS_MIN_VOLT           3.9       // min VDC voltage allowed (VSYS + 0.8V pre-filter drop)
+#define VSYS_MAX_VOLT           6.3       // max VDC voltage allowed
+#else
 #define VSYS_MIN_VOLT           3.1       // min VSYS voltage allowed
 #define VSYS_MAX_VOLT           5.5       // max VSYS voltage allowed
+#endif
 /* SPI pin configuration defines */
 #define SPI_CS_PIN              5
 #define SPI_SCK_PIN             2
