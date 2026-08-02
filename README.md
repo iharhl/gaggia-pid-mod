@@ -3,11 +3,17 @@
 This project adds PID temperature control to my Gaggia Classic
 espresso machine. Inspired by similar DIY efforts, I wanted to
 challenge myself by designing and implementing the modification
-entirely from scratch. 
+entirely from scratch.
 
-A PID controller offers more precise and consistent temperature
-regulation compared to the stock thermostat, which helps improve shot
-quality.
+By default, Gaggia uses thermostat-based (on/off) temperature control,
+which has noticed deviations from the ideal temperature. A PID controller
+offers more precise and consistent temperature regulation compared to the
+stock thermostat, which helps improve shot quality.
+
+**Update Jul 2026:** I decided to create a custom "carrier" PCB which is
+more compact, robust, and makes wiring more organized. Instead of using the
+same microcontroller board, I switched from Pi Pico to RP2040-Zero (has the
+same MCU). This readme file was updated accordingly.
 
 
 ## Table of contents
@@ -29,7 +35,8 @@ quality.
    - [Helper tools](#helper-tools)
 3. [Results](#results)
    - [Calibration](#calibration)
-   - [Final assembly](#final-assembly)
+   - [Final assembly (old)](#final-assembly-old-pi-pico-version)
+   - [Final assembly (new)](#final-assembly-new-rp2040-zero-version)
    - [Taste Test](#taste-test)
 4. [Resources](#resources)
 
@@ -38,7 +45,7 @@ quality.
 
 The Gaggia machine regulates temperature using basic thermostat, which
 functions as a switch that cuts off power when the water temperature
-exceeds its rated threshold — 107°C for brewing. However, this approach
+exceeds its rated threshold – 107°C for brewing. However, this approach
 results in a sluggish system response. Once the temperature reaches the
 cutoff point, it tends to slowly oscillate around the target, deviating
 by several degrees. This rudimentary control method lacks the precision
@@ -50,6 +57,7 @@ based on real-time measurements. This allows for smoother and more
 accurate temperature control.
 
 To implement such a system, following components are required:
+
 - Temperature sensor
 - Power switch
 - Microcontroller board
@@ -62,14 +70,14 @@ temperature over a wide range (~0°C to 200°C) with high accuracy
 
 A common use case that fits these requirements is temperature control
 in a water heater, where RTD (Resistance Temperature Detector) sensors
-are frequently employed. For this purpose, a Pt100 RTD sensor was
+are frequently used. For this purpose, a Pt100 RTD sensor was
 selected. It meets the accuracy and range specifications and is readily
 available with an M4 adapter suitable for mounting to a boiler.
 
 However, achieving accurate temperature readings from an RTD sensor
 requires a precise analog-to-digital converter (ADC) and amplification.
 Fortunately, this problem has been effectively solved with the MAX31865
-— a user-friendly resistance-to-digital converter optimized for platinum
+– a user-friendly resistance-to-digital converter optimized for platinum
 RTDs like the Pt100. With the MAX31865, you simply connect the sensor,
 configure the device, and it provides accurate digital temperature
 readings.
@@ -124,7 +132,13 @@ and have sufficient memory resources.
 I had a Raspberry Pi Pico on hand that I hadn’t worked with before, so
 I decided to use it as the microcontroller for this project.
 
+**Update Jul 2026:** for a carrier PCB, I switch the board to RP2040-Zero –
+both are supported now.
+
+<p>
 <img src="/docs/hardware/pipico.jpg" alt="hw_PICO" width="280" height="155">
+<img src="/docs/hardware/rp2040zero.jpg" alt="hw_ZERO" width="160" height="155">
+</p>
 
 ### Additional hardware
 
@@ -174,13 +188,13 @@ increased wear on the pump, as this vibration pump is not designed to
 operate under such conditions.
 
 A simpler alternative is pump time control. By interrupting power to the
-pump, you can implement programmable shot timing — effectively automating
+pump, you can implement programmable shot timing – effectively automating
 brew durations without modifying flow or pressure directly. All that is
 required for this mod is a relay board and some wiring to detect when the
 brew button has been pressed.
 
 Since I dragged this project out for too long, I ultimately decided
-to skip the relay part of the mod — it would not have made a meaningful
+to skip the relay part of the mod – it would not have made a meaningful
 difference for my use case anyway. However, I wired the brew button
 to the Pico.
 
@@ -214,7 +228,7 @@ Temperature measurements are obtained via the MAX31865 chip, which
 uses SPI for communication. Hence, the SPI driver class was implemented.
 Due to specific timing requirements of the MAX31865, slight modification
 were done to the native Pico SDK SPI calls. The details are available in 
-the implementation file — [src/spi.cpp](src/spi.cpp). Below are examples of
+the implementation file – [src/spi.cpp](src/spi.cpp). Below are examples of
 SPI read and write operations captured with a logic analyzer:
 
 <p>
@@ -224,11 +238,11 @@ SPI read and write operations captured with a logic analyzer:
 
 The MAX31865 driver implements the chip-specific logic
 and utilizes the SPI class instance for communication. Details can be
-found here — [src/max31865.cpp](src/max31865.cpp)
+found here – [src/max31865.cpp](src/max31865.cpp)
 
 ### PID controller
 
-Not much to explain here — a PID temperature controller logic is
+Not much to explain here – a PID temperature controller logic is
 encapsulated within the PID class. The implementation is minimal, only
 includes basic P-I-D action, no filtering, and includes integral
 anti-windup to prevent the accumulation of integral action (which is 
@@ -236,7 +250,7 @@ important in such slow control systems).
 
 The PID compute method takes temperature setpoint and the measurement as
 inputs (error is calculated inside), and outputs the PWM percentage (duty
-cycle). Implementation can be found here —
+cycle). Implementation can be found here –
 [src/pid.cpp](src/pid.cpp)
 
 ### Relay control
@@ -245,7 +259,7 @@ The SSR is controlled via PWM, hence the logic is put into PWM class.
 The small problem here is that the control systems is quite slow
 leading to a long PWM period, too long to be controlled using Pico's
 dedicated PWM peripherals. Therefore, the PWM logic was implemented
-via combination of timer peripheral and GPIO actions. Check details here —
+via combination of timer peripheral and GPIO actions. Check details here –
 [src/pwm.cpp](src/pwm.cpp)
 
 <small>
@@ -253,18 +267,18 @@ via combination of timer peripheral and GPIO actions. Check details here —
 > An interesting consideration here is how much power is delivered to the
 heating element during each PWM period. Here's what I mean: suppose
 the PID controller outputs a 10% duty cycle. Depending on the length
-of the PWM period, this 10% can represent different chunks of time —
+of the PWM period, this 10% can represent different chunks of time –
 for example, 0.11 sec.
 > 
 > In the EU, the AC mains frequency is 50 Hz, meaning each full AC cycle
 lasts 20 ms. However, 0.11 sec is not an even multiple of
-the AC period (0.11 ÷ 0.02 = 5.5 cycles), so the PWM period slices
+the AC period (0.11 / 0.02 = 5.5 cycles), so the PWM period slices
 through the AC waveform at arbitrary points. As a result, depending on
 exactly where in the AC cycle the PWM turns on or off, the average power
 delivered can fluctuate between periods.
 >
 > To achieve more consistent power delivery, it is desirable to align the
-PWM period so that it is an integer multiple of the AC cycle period — for
+PWM period so that it is an integer multiple of the AC cycle period – for
 example, setting the PWM period to 2 seconds (100 full AC cycles). This
 way, for any given duty cycle, the on-time will always correspond to a
 whole number of complete AC periods, rather than cutting through the AC
@@ -272,7 +286,7 @@ waveform at arbitrary points. As a result, the average power delivered
 becomes more predictable and stable.
 >
 > Of course, there are some caveats here, and the topic can get quite
-technical — including issues like the non-ideal nature of mains
+technical – including issues like the non-ideal nature of mains
 frequency, inrush current when switching at AC peaks, and other
 electrical nuances. That said, these details are not critical for this
 particular system in my opinion, especially since the SSR I chose
@@ -307,6 +321,8 @@ Possible error codes are summarized in the table below:
 | P3         |               | Under voltage detected on VSYS                                                        |
 | P4         |               | Boiler too hot (higher than typical steaming temperature)                             |
 | P5         |               | Machine was running for too long                                                      |
+| C0         | Communication | Error occurred during I2C communication                                               |
+| C1         |               | SPI device seems to be disconnected                                                   |
 | S0         | Sensing       | MAX31865 reports under/overvoltage                                                    |
 | S1         |               | MAX31865 reports RTD input voltage is too low                                         |
 | S2         |               | MAX31865 reports reference input voltage is too high                                  |
@@ -314,13 +330,11 @@ Possible error codes are summarized in the table below:
 | S4         |               | MAX31865 reports RTD resistance is lower than the configured low threshold            |
 | S5         |               | MAX31865 reports RTD resistance is higher than the configured high threshold          |
 | S6         |               | Abnormal / not realistic boiler temperature (without MAX31865 reporting faults)       |
-| C0         | Communication | Error occurred during I2C communication                                               |
-| C1         |               | SPI device seems to be disconnected                                                   |
 | HI         | User info     | Warning to the user that boiler temperature above setpoint (does not disable the PWM) |
 | LO         |               | Warning to the user that boiler temperature below setpoint (does not disable the PWM) |
 | OK         |               | Boiler temperature close to setpoint and no errors detected                           |
 
-Check implementation here — [src/error.cpp](src/error.cpp)
+Check the implementation here – [src/error.cpp](src/error.cpp)
 
 ### Display
 
@@ -330,15 +344,15 @@ communication protocol. I chose to structure the display logic in
 
 - The I2C driver class handles communication. The default timings in the
 Pico SDK were sufficient, so no modifications were necessary. Check 
-here — [src/i2c.cpp](src/i2c.cpp)
+here – [src/i2c.cpp](src/i2c.cpp)
 
 - The SSD1327 driver manages the logic for updating the display, such
 as filling or clearing the screen, drawing specific regions, and more.
-Implementation can be found here — [src/ssd1327.cpp](src/ssd1327.cpp)
+Implementation can be found here – [src/ssd1327.cpp](src/ssd1327.cpp)
 
 - The GUI driver oversees the display layout, including how quickly the
 display is updated and how individual numbers or letters correspond to
-an actual pixel data. Source file — [src/gui.cpp](src/gui.cpp)
+an actual pixel data. Source file – [src/gui.cpp](src/gui.cpp)
 
 Image below shows the layout of 128x128 display:
 
@@ -364,8 +378,8 @@ Images below show examples of what can be displayed.
 
 <small>
 
-> All the icons, letters and numbers were drawn by me using an online
-> designer for pixel art — Pixilart. The original .pixil files, generated
+> All the icons, letters, and numbers were drawn by me using an online
+> designer for pixel art – Pixilart. The original .pixil files, generated
 > png images, etc. are stored in [docs/display/](docs/display)
 
 </small>
@@ -377,7 +391,7 @@ is pressed, the normally closed (NC) relay remains inactive, allowing
 the water to flow. After the programmed time elapses, the relay opens,
 cutting the power to the pump. After the brew button is released by the
 user, the relay returns to its default closed position. For details, see
-— [src/pump.cpp](src/pump.cpp)
+– [src/pump.cpp](src/pump.cpp)
 
 This setup enables precise shot timing without the need for manual
 tracking of time. While I have not set up the relay part myself, I've
@@ -390,7 +404,7 @@ presses. This enables real-time display of the shot extraction time.
 
 Source code also includes:
 
-- Clock class provides current uptime of the MCU in ms, sec and min.
+- Clock class provides current uptime of the MCU in ms, sec, and min.
 All the methods are static as the class does not need to be instantiated,
 it just encapsulates the logic relevant to time. Check
 [src/clock.cpp](src/clock.cpp)
@@ -398,9 +412,11 @@ it just encapsulates the logic relevant to time. Check
 - Led class controls the on-board LED. Same as clock, all methods are
 static. Check [src/led.cpp](src/led.cpp)
 
-- Vsys monitor class provides ability to measure the voltage on VSYS line.
+- Vsys monitor class provides the ability to measure the voltage on VSYS line.
 As the ADC handling is minimal in the software, I decided to not create a
-separate class for it. Check [src/vses.cpp](src/vsens.cpp)
+separate class for it. Check [src/vses.cpp](src/vsens.cpp). **Update Jul 2026:**
+custom PCB has a voltage divider, which PR2040-Zero uses to read VDC from
+the AC/DC supply, instead of measuring VSYS line itself.
 
 - Watchdog that reboots the MCU if it is not updated in a defined amount
 of time. It has no class of its own, direct SDK calls are used.
@@ -414,12 +430,12 @@ computer. Check [src/myprint.h](src/myprint.h)
 To aid the development, I made several scripts which are stored in the
 [tools/](tools) folder.
 
-| Script          | Description                                                      |
-|-----------------|------------------------------------------------------------------|
-| flash.sh        | Flash the binary on the Pico and print its size                  |
-| listen.py       | Connect to serial port and record data transmitted from the Pico |
-| process-data.py | Parse and plot the temperature data recorded from serial         |
-| png-to-bytes.py | Convert png image into raw data to be displayed on the OLED      |
+| Script          | Description                                                                     |
+|-----------------|---------------------------------------------------------------------------------|
+| flash.sh        | Build and flash the binary on the Pico or PR2040-Zero boards and print its size |
+| listen.py       | Connect to serial port and record data transmitted from the Pico                |
+| process-data.py | Parse and plot the temperature data recorded from serial                        |
+| png-to-bytes.py | Convert png image into raw data to be displayed on the OLED                     |
 
 
 ## Results
@@ -456,9 +472,9 @@ resulting in an initial temperature undershoot (visible at around the
 600-second mark). However, within about one and a half minutes, the
 controller compensated and returned the system to the setpoint.
 
-While this is not a realistic usage scenario — doubt anyone would really
+While this is not a realistic usage scenario – doubt anyone would really
 wait 10 minutes for the boiler to cool passively (while having the machine
-on) — I conducted a more practical test next. After reaching steam
+on) – I conducted a more practical test next. After reaching steam
 temperature, I manually dropped the temperature by flushing water. This
 caused the temperature to fall below the setpoint, but the controller
 responded quickly. Two factors contributed to the improved response:
@@ -472,16 +488,16 @@ system recovered rapidly and stabilized efficiently.
 </p>
 
 Overall, the controller is stable, and the system's performance is more
-than adequate for real-world use — substantially better than the stock
+than adequate for real-world use – substantially better than the stock
 configuration. Although further PID tuning is possible, the current
 setup delivers great results.
 
-### Final assembly
+### Final assembly (old Pi Pico version)
 
 The circuit diagram of the final assembly is shown below. It illustrates
 how most of the components were wired together.
 
-<img src="/docs/assembly/circuit.png" alt="circuit" width="800" height="445">
+<img src="/docs/assembly/circuit-old.png" alt="cir-old">
 
 The photos below provide a rough overview of the assembly process. In
 the first image, I have highlighted the main modification. Here is a
@@ -503,8 +519,34 @@ In the second image, you can see the fully assembled machine. The display
 is mounted in a case attached to the side of the machine.
 
 <p>
-<img src="/docs/assembly/assembly.jpeg" alt="circuit" width="400" height="534">
-<img src="/docs/assembly/machine.jpeg" alt="circuit" width="365" height="534">
+<img src="/docs/assembly/assembly-old.jpeg" alt="assem-old" width="400" height="534">
+<img src="/docs/assembly/machine-old.jpeg" alt="mach-old" width="365" height="534">
+</p>
+
+### Final assembly (new RP2040-Zero version)
+
+Updating the assembly in Jul 2026 resulted in a change of a circuit diagram. See
+the updated version below. Noticeable differences are:
+
+- The MCU board switched from Pi Pico to RP2040-Zero.
+- Voltage divider circuit is no longer on-board – dedicated 22k/10k one is added
+  to the custom PCB. Note that it would be better to put it after the capacitors,
+  but still works okay as shown.
+
+<img src="/docs/assembly/circuit-new.png" alt="cir-new">
+
+Same as in the previous chapter (old assembly), the photos below show how the new
+assembly looks like. In the first image, the main modification are highlighted
+with the same number order. The wiring looks way cleaner in the new version.
+
+All the enclosures were updated (for the controller, AC/DC supply and display).
+Screen's enclosure is now magnetically attached to the machine's body. I made
+hollow standoffs and put few tiny (6x2mm) neodymium magnets there which keep the
+screen securely attached to the machine.
+
+<p>
+<img src="/docs/assembly/assembly-new.jpeg" alt="assem-new" width="400" height="534">
+<img src="/docs/assembly/machine-new.jpeg" alt="mach-new" width="365" height="534">
 </p>
 
 ### Taste test
@@ -518,8 +560,8 @@ even get a hardly drinkable shot (skill issue, gonna admit).
 
 The quality of the shots I got while testing the mod were surprising. I
 finally was able to taste those flavor "notes" that coffee influencers always
-talk about. The acidity was still present, but now it felt balanced — bright,
-not sharp — allowing more complex flavors to emerge.
+talk about. The acidity was still present, but now it felt balanced – bright,
+not sharp – allowing more complex flavors to emerge.
 
 Even more surprising is that in a test setup and very little effort put
 into puck preparation, the espresso tasted substantially better than on
@@ -529,7 +571,7 @@ the stock machine.
 ## Resources
 
 Material on how to approach the mod:
-- Gagginno project - https://gaggiuino.github.io/#/
+- Gaggiuino project - https://gaggiuino.github.io/#/
 - BaristaGadgets kit, specifically this video - https://www.youtube.com/watch?v=gj9qLIDaF9g
 - Guide on how Gaggia machine works - https://comoricoffee.com/en/gaggia-classic-pro-circuit-diagram-en/
 
