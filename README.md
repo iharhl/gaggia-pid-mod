@@ -10,11 +10,16 @@ which has noticed deviations from the ideal temperature. A PID controller
 offers more precise and consistent temperature regulation compared to the
 stock thermostat, which helps improve shot quality.
 
-**Update Jul 2026:** I decided to create a custom "carrier" PCB which is
-more compact, robust, and makes wiring more organized. Instead of using the
-same microcontroller board, I switched from Pi Pico to RP2040-Zero (has the
-same MCU). This readme file was updated accordingly.
+---
 
+**Update Jul 2026:** I decided to create a custom "carrier" PCB which is more
+compact, robust, and makes wiring more organized. Instead of using the same
+microcontroller board, I switched from Pi Pico to RP2040-Zero (has the same MCU).
+This readme file was updated accordingly. See the new control box below.
+
+<img src="/docs/assembly/controller-box.png" alt="pcb" width="30%" height="30%">
+
+---
 
 ## Table of contents
 
