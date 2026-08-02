@@ -62,7 +62,7 @@
 int main() {
   stdio_init_all();
 
-  // Set up LED on the pico
+  // Set up on-board LED
   LED::init();
   LED::turnOn();
 
@@ -71,9 +71,11 @@ int main() {
   printf("[DBG] Board: ");
 #ifdef WAVESHARE_RP2040_ZERO
   printf("Waveshare RP2040-Zero\n");
-#else
+#else //WAVESHARE_RP2040_ZERO
   printf("Raspberry Pi Pico\n");
 #endif //WAVESHARE_RP2040_ZERO
+#else //DEBUG
+  sleep_ms(500);
 #endif //DEBUG
 
   // Set up SSD1327 display and its I2C driver. Set up display manager

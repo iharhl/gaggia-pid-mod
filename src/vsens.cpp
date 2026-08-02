@@ -20,7 +20,7 @@ VsysMonitor::VsysMonitor(const uint8_t pin, const uint8_t channel) :
 
 float VsysMonitor::readOnce() const {
     if (!isADCConfigured())
-        return -1.0; // todo: handle error
+        return -1.0;
     const uint16_t raw_adc = adc_read(); // 12-bit value (0–4095)
     const float v_adc = (raw_adc * 3.3f) / 4095.0f;
     return v_adc * kDividerFactor;
@@ -28,7 +28,7 @@ float VsysMonitor::readOnce() const {
 
 float VsysMonitor::readAvg(const uint8_t samples) const {
     if (!isADCConfigured())
-        return -1.0; // todo: handle error
+        return -1.0;
     uint32_t sum = 0; // num <= 255 and raw adc <= 4095 --> no overflow
     for (auto i = 0; i < samples; i++) {
         sum += adc_read();
